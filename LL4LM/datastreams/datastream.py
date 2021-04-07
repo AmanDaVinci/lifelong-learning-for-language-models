@@ -15,11 +15,8 @@ class DataStream:
             for id in dataset_ids
         ]
     
-    def __str__(self):
-        return " -> ".join([f"{id}[{num}]" for id, num in self.state()])
-    
     # TODO: better name
-    def state(self):
+    def df(self):
         return pd.DataFrame(
             [(str(id), data.num_rows) for id, data in zip(self.ids, self.stream)],
             columns=["dataset", "num_examples"]
