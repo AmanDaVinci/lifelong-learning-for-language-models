@@ -42,8 +42,8 @@ class Trainer:
         datastream.limit_datasets(config.max_size_each_dataset)
         teststream.limit_datasets(config.testset_size)
         examples = datastream.sample_examples(config.n_samples_each_dataset)
-        wandb.log({"Sampled_Examples": wandb.Table(dataframe=examples)})
-        wandb.log({"Data_Stream": wandb.Table(datastream.state())})
+        wandb.log({"Sampled_Examples": wandb.Table(dataframe=examples)}, step=0)
+        wandb.log({"Data_Stream": wandb.Table(datastream.state())}, step=0)
         log.info(f"Loaded Data Stream: {datastream}")
         self.tokenizer = AutoTokenizer.from_pretrained(self.config.model.base_model)
         self.dataloader = datastream.get_dataloader(
