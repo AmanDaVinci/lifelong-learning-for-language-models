@@ -2,7 +2,7 @@ import random
 from functools import wraps
 from datasets import load_dataset
 from LL4LM.datastreams.transforms import DatastreamTransforms
-from LL4LM.datastreams.dataset_ids import DatasetID, 
+from LL4LM.datastreams.dataset_ids import DatasetID
 from LL4LM.datastreams.dataset_ids import (
     SUPER_GLUE, 
     SUPER_GLUE_TEST, 
