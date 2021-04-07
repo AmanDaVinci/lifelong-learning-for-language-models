@@ -20,7 +20,10 @@ class DataStream:
     
     # TODO: better name
     def state(self):
-        return [(str(id), data.num_rows) for id, data in zip(self.ids, self.stream)]
+        return pd.DataFrame(
+            [(str(id), data.num_rows) for id, data in zip(self.ids, self.stream)],
+            columns=["dataset", "num_examples"]
+        )
 
     def sample_examples(self, num_per_dataset: int=1) -> pd.DataFrame:
         all_sample_data = []
@@ -29,7 +32,7 @@ class DataStream:
             sample_data = data.select(sample_idxs).to_pandas()
             sample_data["dataset"] = str(id)
             all_sample_data.append(sample_data)
-        return pd.concat(all_sample_data).set_index("dataset")
+        return pd.concat(all_sample_data)
 
     def shuffle_datasets(self, seed: int=None):
         self.stream = [data.shuffle(seed) for data in self.stream]
