@@ -54,7 +54,7 @@ class Trainer:
         )
         self.testloaders = teststream.get_dataloader(
             self.tokenizer, 
-            batch_size=config.batch_size*2, # more memory during no_grad
+            batch_size=config.batch_size,
             concatenate=False,
             shuffle_examples=False
         )
