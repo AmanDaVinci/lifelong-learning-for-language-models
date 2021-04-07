@@ -1,0 +1,17 @@
+seed: 42
+test_freq: 10 
+checkpoint_dir: "checkpoints"
+data:
+  batch_size: 32
+  max_size_each_dataset: 10000
+  testset_size: 1000
+  n_samples_each_dataset: 5
+  multitask: True
+  multilingual: False 
+  multidomain: False 
+  data_shuffle: True
+  stream_shuffle: False
+model:
+  base_model: "bert-base-uncased"
+  lr: 3e-5
+  wt_decay: 0.0
