@@ -111,14 +111,14 @@ SUPER_GLUE = [
     wsc_train_id
 ]
 SUPER_GLUE_TEST = [
-    boolq_test_id,
-    cb_test_id,
-    copa_test_id,
-    multirc_test_id,
-    record_test_id,
-    rte_test_id,
-    wic_test_id,
-    wsc_test_id
+    boolq_eval_id,
+    cb_eval_id,
+    copa_eval_id,
+    multirc_eval_id,
+    record_eval_id,
+    rte_eval_id,
+    wic_eval_id,
+    wsc_eval_id
 ]
 
 XNLI = [
