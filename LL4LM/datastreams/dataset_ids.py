@@ -32,19 +32,19 @@ copa_eval_id = DatasetID("super_glue", "copa", "validation")
 copa_test_id = DatasetID("super_glue", "copa", "test")
 
 record_train_id = DatasetID("super_glue", "record", "train")
-record_eval_id = DatasetID("super_glue", "record", "eval")
+record_eval_id = DatasetID("super_glue", "record", "validation")
 record_test_id = DatasetID("super_glue", "record", "test")
 
 rte_train_id = DatasetID("super_glue", "rte", "train")
-rte_eval_id = DatasetID("super_glue", "rte", "eval")
+rte_eval_id = DatasetID("super_glue", "rte", "validation")
 rte_test_id = DatasetID("super_glue", "rte", "test")
 
 wic_train_id = DatasetID("super_glue", "wic", "train")
-wic_eval_id = DatasetID("super_glue", "wic", "eval")
+wic_eval_id = DatasetID("super_glue", "wic", "validation")
 wic_test_id = DatasetID("super_glue", "wic", "test")
 
 wsc_train_id = DatasetID("super_glue", "wsc", "train")
-wsc_eval_id = DatasetID("super_glue", "wsc", "eval")
+wsc_eval_id = DatasetID("super_glue", "wsc", "validation")
 wsc_test_id = DatasetID("super_glue", "wsc", "test")
 
 mnli_train_id = DatasetID("glue", "mnli", "train")
