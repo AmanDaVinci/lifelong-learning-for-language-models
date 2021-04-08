@@ -74,6 +74,7 @@ class Trainer:
         self.ckpt_dir.mkdir(parents=True, exist_ok=True)
     
     def run(self):
+        log.info(f"Start training model")
         batch_size, test_freq = self.config.data.batch_size, self.config.test_freq
         wandb.watch(self.model, log="gradients", log_freq=test_freq)
         examples_seen = 0
