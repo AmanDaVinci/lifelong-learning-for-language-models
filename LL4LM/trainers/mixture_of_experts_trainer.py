@@ -52,19 +52,27 @@ class MixtureOfExpertsTrainer(Trainer):
 
     def run(self):
         batch_size, test_freq = self.config.data.batch_size, self.config.test_freq
+        examples_seen = 0
         for dataset_id, dataloader, testloader in zip(self.dataset_ids, self.dataloaders, self.testloaders):
             self.model.train()
             log.info(f"Start training model on {dataset_id}")
             wandb.watch(self.model, log="gradients", log_freq=test_freq)
-            examples_seen = 0
+            dataset_examples_seen = 0
             for batch in dataloader:
                 loss, acc = self.model.step(batch)
                 loss.backward()
                 self.opt.step()
                 self.opt.zero_grad()
                 examples_seen += batch_size
-                wandb.log({f"train/{dataset_id}/loss": loss.item()}, step=examples_seen)
-                wandb.log({f"train/{dataset_id}/accuracy": acc}, step=examples_seen)
+                dataset_examples_seen += batch_size
+                wandb.log(
+                    {
+                        f"train/{dataset_id}/loss": loss.item(),
+                        f"train/{dataset_id}/accuracy": acc,
+                        f"{dataset_id}_examples_seen": dataset_examples_seen,
+                    }, 
+                    step=examples_seen
+                )
             save_path = self.ckpt_dir/f"{wandb.run.id}-{dataset_id}.pt"
             self.model.save(save_path)
             log.info(f"Trained model saved at {save_path}")
