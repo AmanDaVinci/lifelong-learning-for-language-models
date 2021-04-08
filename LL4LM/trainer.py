@@ -44,7 +44,6 @@ class Trainer:
         examples = datastream.sample_examples(config.n_samples_each_dataset)
         wandb.log({"Sampled_Examples": wandb.Table(dataframe=examples)}, step=0)
         wandb.log({"Data_Stream": wandb.Table(dataframe=datastream.df())}, step=0)
-        log.info(f"Loaded Data Stream")
         self.tokenizer = AutoTokenizer.from_pretrained(self.config.model.base_model)
         self.dataloader = datastream.get_dataloader(
             self.tokenizer, 
@@ -58,6 +57,7 @@ class Trainer:
             concatenate=False,
             shuffle_examples=False
         )
+        log.info(f"Loaded Data Stream")
 
     def load_model(self): 
         config = self.config.model
