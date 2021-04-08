@@ -13,7 +13,7 @@ def main(config: DictConfig):
     dict_config = OmegaConf.to_container(config, resolve=True)
     with wandb.init(project="LL4LM", config=dict_config):
         if config.trainer.lifelong:
-            trainer = Trainer(config)
+            trainer = LifelongTrainer(config)
         elif config.trainer.multitask:
             trainer = MultitaskTrainer(config)
         elif config.trainer.mixture_of_experts:
