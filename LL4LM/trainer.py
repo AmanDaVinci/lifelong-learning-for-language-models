@@ -54,7 +54,7 @@ class Trainer:
         )
         self.testloaders = teststream.get_dataloader(
             self.tokenizer, 
-            batch_size=config.batch_size,
+            batch_size=config.test_batch_size,
             concatenate=False,
             shuffle_examples=False
         )
@@ -74,6 +74,7 @@ class Trainer:
         self.ckpt_dir.mkdir(parents=True, exist_ok=True)
     
     def run(self):
+        self.model.train()
         log.info(f"Start training model")
         batch_size, test_freq = self.config.data.batch_size, self.config.test_freq
         wandb.watch(self.model, log="gradients", log_freq=test_freq)
@@ -83,6 +84,7 @@ class Trainer:
                 losses, accuracies = self.test()
                 wandb.log(losses, step=examples_seen)
                 wandb.log(accuracies, step=examples_seen)
+                log.info(f"Test Accuracies after {examples_seen}: {accuracies}")
             loss, acc = self.model.step(batch)
             loss.backward()
             self.opt.step()
