@@ -7,7 +7,8 @@ from LL4LM.trainer import Trainer
 
 @hydra.main(config_path="configs", config_name="config")
 def main(config: DictConfig):
-    with wandb.init(project="LL4LM", config=config):
+    dict_config = OmegaConf.to_container(config, resolve=True)
+    with wandb.init(project="LL4LM", config=dict_config):
         trainer = Trainer(config)
         trainer.run()
 
