@@ -11,7 +11,7 @@ from LL4LM.datastreams.dataset_ids import (
     XNLI, 
     XNLI_TEST, 
     mnli_train_id,
-    mnli_test_id,
+    mnli_eval_id,
 )
 
 
@@ -41,7 +41,7 @@ def load_dataset_ids(multitask: bool=True,
         testset_ids.extend(SUPER_GLUE_TEST)
     if multilingual:
         pretrain_dataset_ids.append(mnli_train_id)
-        pretrain_testset_ids.append(mnli_test_id)
+        pretrain_testset_ids.append(mnli_eval_id) # glue doesn't provide testset
         dataset_ids.extend(XNLI)
         testset_ids.extend(XNLI_TEST)
     if multidomain:
