@@ -3,13 +3,21 @@ import hydra
 from hydra.utils import instantiate
 from omegaconf import DictConfig, OmegaConf
 
-from LL4LM.trainer import Trainer
+from LL4LM.trainers.lifelong_trainer import LifelongTrainer
+from LL4LM.trainers.multitask_trainer import MultitaskTrainer
+from LL4LM.trainers.mixture_of_experts_trainer import MixtureOfExpertsTrainer
+
 
 @hydra.main(config_path="configs", config_name="config")
 def main(config: DictConfig):
     dict_config = OmegaConf.to_container(config, resolve=True)
     with wandb.init(project="LL4LM", config=dict_config):
-        trainer = Trainer(config)
+        if config.trainer.lifelong:
+            trainer = Trainer(config)
+        elif config.trainer.multitask:
+            trainer = MultitaskTrainer(config)
+        elif config.trainer.mixture_of_experts:
+            trainer = MixtureOfExpertsTrainer(config)
         trainer.run()
 
 
