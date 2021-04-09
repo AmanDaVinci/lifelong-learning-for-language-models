@@ -64,7 +64,7 @@ class MixtureOfExpertsTrainer(Trainer):
             log.info(f"Start training new model on {dataset_id}")
             wandb.watch(self.model, log="gradients", log_freq=test_every_nsteps)
             dataset_examples_seen = 0
-            for batch in dataloader:
+            for i, batch in enumerate(dataloader):
                 examples_seen += batch_size
                 dataset_examples_seen += batch_size
                 loss, acc = self.model.step(batch)
