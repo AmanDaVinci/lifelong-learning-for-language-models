@@ -55,7 +55,7 @@ class LifelongTrainer(Trainer):
     def run(self):
         self.model.train()
         self.model.zero_grad()
-        format_dict = partial(json.dump, indent=4)
+        format_dict = partial(json.dumps, indent=4)
         batch_size = self.config.data.batch_size
         test_every_nsteps = self.config.test_every_nsteps
         accumulate_every_nsteps = self.config.accumulate_gradient_every_nsteps
