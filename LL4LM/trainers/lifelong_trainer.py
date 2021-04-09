@@ -59,11 +59,11 @@ class LifelongTrainer(Trainer):
         batch_size = self.config.data.batch_size
         test_every_nsteps = self.config.test_every_nsteps
         accumulate_every_nsteps = self.config.accumulate_gradient_every_nsteps
-        assert test_every_nsteps % accumulate_every_nsteps == 0, 
+        assert test_every_nsteps % accumulate_every_nsteps == 0,\
             f"Gradient accumulation interval ({test_every_nsteps}) "\
             f"must be a factor of testing interval {test_every_nsteps}."
         log.info(
-            f"Training the model with a batch size of {batch_size} ",
+            f"Training the model with a batch size of {batch_size} "\
             f"and accumulating gradients every {accumulate_every_nsteps} steps"
         )
         wandb.watch(self.model, log="gradients", log_freq=test_every_nsteps)
