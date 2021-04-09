@@ -1,7 +1,9 @@
 import random
+import json
 import torch
 import numpy as np
 from pathlib import Path
+from functools import partial
 from transformers import AdamW, AutoTokenizer, AutoModel
 
 from LL4LM.datastreams import DataStream, load_dataset_ids
@@ -52,23 +54,39 @@ class LifelongTrainer(Trainer):
 
     def run(self):
         self.model.train()
-        log.info(f"Start training model")
-        batch_size, test_freq = self.config.data.batch_size, self.config.test_freq
-        wandb.watch(self.model, log="gradients", log_freq=test_freq)
+        self.model.zero_grad()
+        format_dict = partial(json.dump, indent=4)
+        batch_size = self.config.data.batch_size
+        test_every_nsteps = self.config.test_every_nsteps
+        accumulate_every_nsteps = self.config.accumulate_gradient_every_nsteps
+        assert test_every_nsteps % accumulate_every_nsteps == 0, 
+            f"Gradient accumulation interval ({test_every_nsteps}) "\
+            f"must be a factor of testing interval {test_every_nsteps}."
+        log.info(
+            f"Training the model with a batch size of {batch_size} ",
+            f"and accumulating gradients every {accumulate_every_nsteps} steps"
+        )
+        wandb.watch(self.model, log="gradients", log_freq=test_every_nsteps)
         examples_seen = 0
         for i, batch in enumerate(self.dataloader):
-            if i%test_freq==0:
-                losses, accuracies = self.test()
-                wandb.log(losses, step=examples_seen)
-                wandb.log(accuracies, step=examples_seen)
-                log.info(f"Test Accuracies after {examples_seen}: {accuracies}")
-            loss, acc = self.model.step(batch)
-            loss.backward()
-            self.opt.step()
-            self.opt.zero_grad()
             examples_seen += batch_size
+            loss, acc = self.model.step(batch)
             wandb.log({"train/loss": loss.item()}, step=examples_seen)
             wandb.log({"train/accuracy": acc}, step=examples_seen)
+            loss = loss / accumulate_every_nsteps
+            loss.backward()
+            if i % accumulate_every_nsteps == 0:
+                self.opt.step()
+                self.model.zero_grad()
+                # test model only when no accumulated gradients exist
+                if i % test_every_nsteps == 0:
+                    losses, accuracies = self.test()
+                    wandb.log(losses, step=examples_seen)
+                    wandb.log(accuracies, step=examples_seen)
+                    log.info(
+                        f"Test Accuracies after seeing {examples_seen} examples:"\
+                        f"{format_dict(accuracies)}"
+                    )
         save_path = self.ckpt_dir/f"{wandb.run.id}.pt"
         self.model.save(save_path)
         log.info(f"Trained model saved at {save_path}")

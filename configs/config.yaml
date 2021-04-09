@@ -1,6 +1,8 @@
 seed: 42
-test_freq: 10 
+trainer: "LifelongTrainer"
 checkpoint_dir: "checkpoints"
+test_every_nsteps: 10 
+accumulate_gradient_every_nsteps: 2
 data:
   batch_size: 24
   test_batch_size: 64
@@ -13,7 +15,6 @@ data:
   data_shuffle: True
   stream_shuffle: False
 model:
-  base_model: "bert-base-uncased"
+  base_model: "bert-base-cased"
   lr: 3e-5
   wt_decay: 0.0
-trainer: "LifelongTrainer"
