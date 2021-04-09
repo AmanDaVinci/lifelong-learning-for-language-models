@@ -1,7 +1,9 @@
 import random
 import torch
+import json
 import numpy as np
 from pathlib import Path
+from functools import partial
 from transformers import AdamW, AutoTokenizer, AutoModel
 
 from LL4LM.datastreams import DataStream, load_dataset_ids
@@ -51,20 +53,21 @@ class MixtureOfExpertsTrainer(Trainer):
         log.info(f"Loaded each dataset separately from Data Stream")
 
     def run(self):
-        batch_size, test_freq = self.config.data.batch_size, self.config.test_freq
+        batch_size = self.config.data.batch_size
+        test_every_nsteps = self.config.test_every_nsteps
+        accumulate_every_nsteps = self.config.accumulate_gradient_every_nsteps
+        format_dict = partial(json.dumps, indent=4)
         examples_seen = 0
         for dataset_id, dataloader, testloader in zip(self.dataset_ids, self.dataloaders, self.testloaders):
+            self.load_model()
             self.model.train()
-            log.info(f"Start training model on {dataset_id}")
-            wandb.watch(self.model, log="gradients", log_freq=test_freq)
+            log.info(f"Start training new model on {dataset_id}")
+            wandb.watch(self.model, log="gradients", log_freq=test_every_nsteps)
             dataset_examples_seen = 0
             for batch in dataloader:
-                loss, acc = self.model.step(batch)
-                loss.backward()
-                self.opt.step()
-                self.opt.zero_grad()
                 examples_seen += batch_size
                 dataset_examples_seen += batch_size
+                loss, acc = self.model.step(batch)
                 wandb.log(
                     {
                         f"train/{dataset_id}/loss": loss.item(),
@@ -73,6 +76,12 @@ class MixtureOfExpertsTrainer(Trainer):
                     }, 
                     step=examples_seen
                 )
+                loss = loss / accumulate_every_nsteps
+                loss.backward()
+                if i % accumulate_every_nsteps == 0:
+                    self.opt.step()
+                    self.model.zero_grad()
+            self.model.zero_grad()
             save_path = self.ckpt_dir/f"{wandb.run.id}-{dataset_id}.pt"
             self.model.save(save_path)
             log.info(f"Trained model saved at {save_path}")
@@ -80,7 +89,6 @@ class MixtureOfExpertsTrainer(Trainer):
             wandb.log({f"test/{dataset_id}/loss": loss.item()}, step=examples_seen)
             wandb.log({f"test/{dataset_id}/accuracy": acc}, step=examples_seen)
             log.info(f"Test Accuracy on {dataset_id}: {acc}")
-            self.load_model()
         log.info(f"Done training on all datasets.")
 
     def test(self, dataset_id, testloader):
