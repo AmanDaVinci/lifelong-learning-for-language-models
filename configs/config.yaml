@@ -16,7 +16,4 @@ model:
   base_model: "bert-base-uncased"
   lr: 3e-5
   wt_decay: 0.0
-trainer:
-  lifelong: True
-  multitask: False
-  mixture_of_experts: False
+trainer: "LifelongTrainer"

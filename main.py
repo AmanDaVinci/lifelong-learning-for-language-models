@@ -12,12 +12,14 @@ from LL4LM.trainers.mixture_of_experts_trainer import MixtureOfExpertsTrainer
 def main(config: DictConfig):
     dict_config = OmegaConf.to_container(config, resolve=True)
     with wandb.init(project="LL4LM", config=dict_config):
-        if config.trainer.lifelong:
+        if config.trainer = "LifelongTrainer":
             trainer = LifelongTrainer(config)
-        elif config.trainer.multitask:
+        elif config.trainer = "MultitaskTrainer":
             trainer = MultitaskTrainer(config)
-        elif config.trainer.mixture_of_experts:
+        elif config.trainer = "MixtureOfExpertsTrainer":
             trainer = MixtureOfExpertsTrainer(config)
+        else:
+            raise NotImplementedError(f"{config.trainer} not implemented.")
         trainer.run()
 
 
