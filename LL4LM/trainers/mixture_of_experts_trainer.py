@@ -1,3 +1,4 @@
+import gc
 import random
 import torch
 import json
@@ -89,6 +90,7 @@ class MixtureOfExpertsTrainer(Trainer):
             wandb.log({f"test/{dataset_id}/loss": loss.item()}, step=examples_seen)
             wandb.log({f"test/{dataset_id}/accuracy": acc}, step=examples_seen)
             log.info(f"Test Accuracy on {dataset_id}: {acc}")
+            self.cleanup()
         log.info(f"Done training on all datasets.")
 
     def test(self, dataset_id, testloader):
@@ -103,3 +105,9 @@ class MixtureOfExpertsTrainer(Trainer):
         testset_accuracy = np.mean(accuracies)
         self.model.train()
         return testset_loss, testset_accuracy
+    
+    def cleanup(self):
+        self.model.to("cpu")
+        del(self.model)
+        gc.collect()
+        torch.cuda.empty_cache()
