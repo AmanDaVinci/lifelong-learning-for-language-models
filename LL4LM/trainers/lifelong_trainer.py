@@ -87,6 +87,14 @@ class LifelongTrainer(Trainer):
                         f"Test Accuracies after seeing {examples_seen} examples:"\
                         f"{format_dict(accuracies)}"
                     )
+        self.model.zero_grad()
+        losses, accuracies = self.test()
+        wandb.log(losses, step=examples_seen)
+        wandb.log(accuracies, step=examples_seen)
+        log.info(
+            f"Final Test Accuracies after seeing {examples_seen} examples:"\
+            f"{format_dict(accuracies)}"
+        )
         save_path = self.ckpt_dir/f"{wandb.run.id}.pt"
         self.model.save(save_path)
         log.info(f"Trained model saved at {save_path}")
