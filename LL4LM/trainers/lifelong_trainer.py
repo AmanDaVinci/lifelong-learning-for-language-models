@@ -26,6 +26,7 @@ class LifelongTrainer(Trainer):
             multitask=config.multitask, 
             multilingual=config.multilingual, 
             multidomain=config.multidomain,
+            custom=config.custom,
             shuffle=config.stream_shuffle
         )
         datastream = DataStream(self.dataset_ids)

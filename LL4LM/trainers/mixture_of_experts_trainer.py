@@ -27,6 +27,7 @@ class MixtureOfExpertsTrainer(Trainer):
             multitask=config.multitask, 
             multilingual=config.multilingual, 
             multidomain=config.multidomain,
+            custom=config.custom,
             shuffle=False # keep the ids ordered
         )
         datastream = DataStream(self.dataset_ids)

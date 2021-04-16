@@ -23,7 +23,8 @@ class MultitaskTrainer(LifelongTrainer):
         self.dataset_ids, self.testset_ids = load_dataset_ids(
             multitask=config.multitask, 
             multilingual=config.multilingual, 
-            multidomain=config.multidomain
+            multidomain=config.multidomain,
+            custom=config.custom
         )
         datastream = DataStream(self.dataset_ids)
         teststream = DataStream(self.testset_ids)
