@@ -4,6 +4,8 @@ from datasets import load_dataset
 from LL4LM.datastreams.transforms import DatastreamTransforms
 from LL4LM.datastreams.dataset_ids import DatasetID
 from LL4LM.datastreams.dataset_ids import (
+    CUSTOM, 
+    CUSTOM_TEST, 
     SUPER_GLUE, 
     SUPER_GLUE_TEST, 
     AMAZON_REVIEWS,
@@ -33,9 +35,13 @@ def load_datastream(path, name, split, filter_column="", filter_value="", **kwar
 def load_dataset_ids(multitask: bool=True, 
                      multilingual: bool=False, 
                      multidomain: bool=False,
+                     custom: str="",
                      shuffle: bool=False):
     dataset_ids, testset_ids  = [], []
     pretrain_dataset_ids, pretrain_testset_ids = [], []
+    if custom=="custom":
+        dataset_ids.extend(CUSTOM)
+        testset_ids.extend(CUSTOM_TEST)
     if multitask:
         dataset_ids.extend(SUPER_GLUE)
         testset_ids.extend(SUPER_GLUE_TEST)
