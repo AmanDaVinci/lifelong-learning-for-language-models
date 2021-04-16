@@ -12,6 +12,7 @@ data:
   multitask: True
   multilingual: False 
   multidomain: False 
+  custom: ""
   data_shuffle: True
   stream_shuffle: False
 model:
