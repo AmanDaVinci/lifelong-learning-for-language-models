@@ -75,6 +75,12 @@ from LL4LM.datastreams.dataset_ids import (
     amazon_reviews_test_beauty_id,
     amazon_reviews_test_drugstore_id,
     amazon_reviews_test_kitchen_id,
+    fewrel_train_id,
+    fewrel_train_id,
+    wikiann_train_id,
+    wikiann_test_id,
+    udpos_train_id,
+    udpos_test_id,
 )
 
 
@@ -352,7 +358,7 @@ def wikiann(batch: dict) -> dict:
         "label": labels
     }
 
-def universal_dependencies(batch: dict) -> dict:
+def udpos(batch: dict) -> dict:
     num_false_statements = 3
     corruption_probability = 0.5
     pos_list = ['NOUN', 'PUNCT', 'ADP', 'NUM', 'SYM', 'SCONJ', 'ADJ', 'PART', 'DET', 'CCONJ', 'PROPN', 'PRON', 'X', '_', 'ADV', 'INTJ', 'VERB', 'AUX']
@@ -470,6 +476,15 @@ class DatastreamTransforms:
         amazon_reviews_test_beauty_id: amazon_reviews,
         amazon_reviews_test_drugstore_id: amazon_reviews,
         amazon_reviews_test_kitchen_id: amazon_reviews,
+
+        fewrel_train_id: few_rel,
+        fewrel_train_id: few_rel,
+
+        wikiann_train_id: wikiann,
+        wikiann_test_id: wikiann,
+
+        udpos_train_id: udpos,
+        udpos_test_id: udpos,
     }
     # All transforms must return a batch with the following Features definition
     features = Features({
