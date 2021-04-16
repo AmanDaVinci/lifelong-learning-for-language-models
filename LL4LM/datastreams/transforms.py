@@ -478,7 +478,7 @@ class DatastreamTransforms:
         amazon_reviews_test_kitchen_id: amazon_reviews,
 
         fewrel_train_id: few_rel,
-        fewrel_train_id: few_rel,
+        fewrel_test_id: few_rel,
 
         wikiann_train_id: wikiann,
         wikiann_test_id: wikiann,
