@@ -100,6 +100,15 @@ amazon_reviews_test_beauty_id = DatasetID("amazon_reviews_multi", "en", "test", 
 amazon_reviews_test_drugstore_id = DatasetID("amazon_reviews_multi", "en", "test", "product_category", "drugstore")
 amazon_reviews_test_kitchen_id = DatasetID("amazon_reviews_multi", "en", "test", "product_category", "kitchen")
 
+fewrel_train_id = DatasetID("few_rel", None, "train_wiki")
+fewrel_test_id = DatasetID("few_rel", None, "val_wiki")
+
+wikiann_train_id = DatasetID("wikiann", "en", "train")
+wikiann_test_id = DatasetID("wikiann", "en", "test")
+
+udpos_train_id = DatasetID("universal_dependencies", "en_lines", "train")
+udpos_test_id = DatasetID("universal_dependencies", "en_lines", "test")
+
 SUPER_GLUE = [
     boolq_train_id,
     cb_train_id,
@@ -171,4 +180,20 @@ AMAZON_REVIEWS_TEST = [
     amazon_reviews_test_beauty_id,
     amazon_reviews_test_drugstore_id,
     amazon_reviews_test_kitchen_id,
+]
+
+CUSTOM = [
+    fewrel_train_id,
+    udpos_train_id,
+    record_train_id,
+    wikiann_train_id,
+    amazon_reviews_home_id,
+]
+
+CUSTOM_TEST = [
+    fewrel_test_id,
+    udpos_test_id,
+    record_eval_id,
+    wikiann_test_id,
+    amazon_reviews_test_home_id,
 ]
