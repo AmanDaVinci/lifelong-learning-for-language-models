@@ -291,6 +291,98 @@ def amazon_reviews(batch: dict) -> dict:
         "label": labels
     }
 
+def few_rel(batch: dict) -> dict:
+    '''TODO: select relevant false relations to increase difficulty'''
+    num_false_statements = 3
+    relations = ['place served by transport hub', 'mountain range', 'religion', 'participating team', 'contains administrative territorial entity', 'head of government', 'country of citizenship', 'original network', 'heritage designation', 'performer', 'participant of', 'position held', 'has part', 'location of formation', 'located on terrain feature', 'architect', 'country of origin', 'publisher', 'director', 'father', 'developer', 'military branch', 'mouth of the watercourse', 'nominated for', 'movement', 'successful candidate', 'followed by', 'manufacturer', 'instance of', 'after a work by', 'member of political party', 'licensed to broadcast to', 'headquarters location', 'sibling', 'instrument', 'country', 'occupation', 'residence', 'work location', 'subsidiary', 'participant', 'operator', 'characters', 'occupant', 'genre', 'operating system', 'owned by', 'platform', 'tributary', 'winner', 'said to be the same as', 'composer', 'league', 'record label', 'distributor', 'screenwriter', 'sports season of league or competition', 'taxon rank', 'location', 'field of work', 'language of work or name', 'applies to jurisdiction', 'notable work', 'located in the administrative territorial entity']
+    contexts, statements, labels = [], [], []
+    for row in zip(batch["tokens"], 
+                   batch["names"],
+                   batch["head"],
+                   batch["tail"]):
+        context = " ".join(row[0])
+        relation = row[1][0]
+        head, tail = row[2]["text"], row[3]["text"]
+        true_statement = " - ".join([head, relation, tail]) 
+        contexts.append(context)
+        statements.append(true_statement)
+        labels.append(1)
+        remaining_relations = [rel for rel in relations if rel!=relation]
+        for false_relation in random.sample(remaining_relations, k=num_false_statements):
+            false_statement = " - ".join([head, false_relation, tail]) 
+            contexts.append(context)
+            statements.append(false_statement)
+            labels.append(0)
+    return {
+        "context": contexts,
+        "statement": statements,
+        "label": labels
+    }
+
+def wikiann(batch: dict) -> dict:
+    num_false_statements = 3
+    corruption_probability = 0.5
+    #named_entities = ['O', 'B-PER', 'I-PER', 'B-ORG', 'I-ORG', 'B-LOC', 'I-LOC']
+    named_entities = ['Outside', 'Beginning-Person', 'Inside-Person', 'Beginning-Organization', 'Inside-Organization', 'Beginning-Location', 'Inside-Location']
+    task_descriptors = ["Name of the entities: ", "Entity names: "]
+    contexts, statements, labels = [], [], []
+    for tokens, tags in zip(batch["tokens"], batch["ner_tags"]):
+        context = " ".join(tokens)
+        tags = [named_entities[tag] for tag in tags]
+        desc = random.choice(task_descriptors)
+        true_statement = " ".join([desc]+tags)
+        contexts.append(context)
+        statements.append(true_statement)
+        labels.append(1)
+        seq_len = len(tags)
+        for _ in range(num_false_statements):
+            indices_to_corrupt = random.sample(range(seq_len), k=int(corruption_probability*seq_len))
+            corrupted_tags = [
+                random.choice(named_entities) if i in indices_to_corrupt else tag\
+                for i, tag in enumerate(tags)
+            ]
+            false_statement = " ".join([desc]+corrupted_tags)
+            contexts.append(context)
+            statements.append(false_statement)
+            labels.append(0)
+            
+    return {
+        "context": contexts,
+        "statement": statements,
+        "label": labels
+    }
+
+def universal_dependencies(batch: dict) -> dict:
+    num_false_statements = 3
+    corruption_probability = 0.5
+    pos_list = ['NOUN', 'PUNCT', 'ADP', 'NUM', 'SYM', 'SCONJ', 'ADJ', 'PART', 'DET', 'CCONJ', 'PROPN', 'PRON', 'X', '_', 'ADV', 'INTJ', 'VERB', 'AUX']
+    task_descriptors = ["Part of speech tags: ", "POS tags: "]
+    contexts, statements, labels = [], [], []
+    for tokens, tags in zip(batch["tokens"], batch["upos"]):
+        context = " ".join(tokens)
+        tags = [pos_list[tag] for tag in tags]
+        desc = random.choice(task_descriptors)
+        true_statement = " ".join([desc]+tags)
+        contexts.append(context)
+        statements.append(true_statement)
+        labels.append(1)
+        seq_len = len(tags)
+        for _ in range(num_false_statements):
+            indices_to_corrupt = random.sample(range(seq_len), k=int(corruption_probability*seq_len))
+            corrupted_tags = [
+                random.choice(pos_list) if i in indices_to_corrupt else tag\
+                for i, tag in enumerate(tags)
+            ]
+            false_statement = " ".join([desc]+corrupted_tags)
+            contexts.append(context)
+            statements.append(false_statement)
+            labels.append(0)
+            
+    return {
+        "context": contexts,
+        "statement": statements,
+        "label": labels
+    }
 
 class DatastreamTransforms:
     transforms = {
