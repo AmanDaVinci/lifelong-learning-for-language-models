@@ -6,6 +6,7 @@ from omegaconf import DictConfig, OmegaConf
 from LL4LM.trainers.lifelong_trainer import LifelongTrainer
 from LL4LM.trainers.multitask_trainer import MultitaskTrainer
 from LL4LM.trainers.mixture_of_experts_trainer import MixtureOfExpertsTrainer
+from LL4LM.trainers.datastream_scanner import DatastreamScanner
 
 
 @hydra.main(config_path="configs", config_name="config")
@@ -18,6 +19,8 @@ def main(config: DictConfig):
             trainer = MultitaskTrainer(config)
         elif config.trainer == "MixtureOfExpertsTrainer":
             trainer = MixtureOfExpertsTrainer(config)
+        elif config.trainer == "DatastreamScanner":
+            trainer = DatastreamScanner(config)
         else:
             raise NotImplementedError(f"{config.trainer} not implemented.")
         trainer.run()
