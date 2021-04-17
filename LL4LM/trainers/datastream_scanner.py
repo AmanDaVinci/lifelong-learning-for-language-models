@@ -51,10 +51,9 @@ class DatastreamScanner():
 
     def load_model(self): 
         config = self.config.model
-        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        self.model = AutoModel.from_pretrained(config.base_model).to(device)
-        self.model.device = device
-        log.info(f"Loaded {config.base_model} on {device}")
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.model = AutoModel.from_pretrained(config.base_model).to(self.device)
+        log.info(f"Loaded {config.base_model} on {self.device}")
 
     def run(self):
         batch_size = self.config.data.batch_size
@@ -63,7 +62,7 @@ class DatastreamScanner():
             log.info(f"Start scanning {dataset_id}")
             dataset_examples_seen = 0
             for batch in dataloader:
-                batch = {k: v.to(self.model.device) for k, v in batch.items()}
+                batch = {k: v.to(self.device) for k, v in batch.items()}
                 labels = batch.pop("label")
                 with torch.no_grad():
                     outputs = self.model.forward(**batch, return_dict=True)
