@@ -76,7 +76,7 @@ from LL4LM.datastreams.dataset_ids import (
     amazon_reviews_test_drugstore_id,
     amazon_reviews_test_kitchen_id,
     fewrel_train_id,
-    fewrel_train_id,
+    fewrel_test_id,
     wikiann_train_id,
     wikiann_test_id,
     udpos_train_id,
