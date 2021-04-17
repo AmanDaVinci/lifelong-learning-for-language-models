@@ -52,7 +52,8 @@ class DatastreamScanner():
     def load_model(self): 
         config = self.config.model
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        self.model = AutoModel.from_pretrained(config.base_model)
+        self.model = AutoModel.from_pretrained(config.base_model).to(device)
+        self.model.device = device
         log.info(f"Loaded {config.base_model} on {device}")
 
     def run(self):
