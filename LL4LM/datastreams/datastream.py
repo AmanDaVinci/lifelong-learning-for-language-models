@@ -46,7 +46,7 @@ class DataStream:
     
     def get_dataloader(self, tokenizer, concatenate: bool, batch_size: int, shuffle_examples: bool):
         tokenizer = partial(tokenizer.batch_encode_plus, 
-                            padding="max_length", truncation="only_first")
+                            padding="max_length", truncation="longest_first")
         def dataloader(dataset):
             dataset = dataset.map(lambda x: tokenizer(list(zip(x["context"], x["statement"]))),
                                   batched=True, remove_columns=["context", "statement"])
