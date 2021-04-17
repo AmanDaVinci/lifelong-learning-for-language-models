@@ -9,10 +9,10 @@ data:
   max_size_each_dataset: 10000
   testset_size: 1000
   n_samples_each_dataset: 5
-  multitask: True
+  multitask: False
   multilingual: False 
   multidomain: False 
-  custom: ""
+  custom: "custom"
   data_shuffle: True
   stream_shuffle: False
 model:
