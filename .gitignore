@@ -3,6 +3,7 @@
 .env
 outputs
 wandb
+notebooks
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
