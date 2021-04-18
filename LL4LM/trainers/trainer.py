@@ -16,6 +16,8 @@ class Trainer:
 
     def __init__(self, config: dict):
         self.config = config
+        self.output_dir = Path(config.output_path)/wandb.run.id
+        self.output_dir.mkdir(parents=True, exist_ok=True)
         self.set_seed(config.seed)
         self.load_data()
         self.load_model()
