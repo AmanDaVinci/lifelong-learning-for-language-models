@@ -68,6 +68,7 @@ class LifelongTrainer(Trainer):
             f"and accumulating gradients every {accumulate_every_nsteps} steps"
         )
         wandb.watch(self.model, log="gradients", log_freq=test_every_nsteps)
+        index, head_weights, head_biases = [], [], []
         examples_seen = 0
         for i, batch in enumerate(self.dataloader):
             examples_seen += batch_size
@@ -84,6 +85,9 @@ class LifelongTrainer(Trainer):
                     losses, accuracies = self.test()
                     wandb.log(losses, step=examples_seen)
                     wandb.log(accuracies, step=examples_seen)
+                    index.append(examples_seen)
+                    head_weights.append(self.model.head.weight.detach().cpu().numpy())
+                    head_biases.append(self.model.head.bias.detach().cpu().numpy())
                     log.info(
                         f"Test Accuracies after seeing {examples_seen} examples:"\
                         f"{format_dict(accuracies)}"
@@ -96,6 +100,12 @@ class LifelongTrainer(Trainer):
             f"Final Test Accuracies after seeing {examples_seen} examples:"\
             f"{format_dict(accuracies)}"
         )
+        df = pd.DataFrame(
+            [index, head_weights, head_biases], 
+            columns=["examples_seen", "head_weight", "head_bias"],
+            index_label="examples_seen"
+        )
+        df.to_csv(self.output_dir/"head_parameters.csv")
         save_path = self.ckpt_dir/f"{wandb.run.id}.pt"
         self.model.save(save_path)
         log.info(f"Trained model saved at {save_path}")
