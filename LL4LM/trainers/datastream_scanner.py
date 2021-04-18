@@ -14,6 +14,8 @@ class DatastreamScanner():
 
     def __init__(self, config: dict):
         self.config = config
+        self.output_dir = Path(config.output_path)/wandb.run.id
+        self.output_dir.mkdir(parents=True, exist_ok=True)
         self.set_seed(config.seed)
         self.load_data()
         self.load_model()
@@ -60,20 +62,19 @@ class DatastreamScanner():
         for dataset_id, dataloader in zip(self.dataset_ids, self.dataloaders):
             self.model.eval()
             log.info(f"Start scanning {dataset_id}")
+            labels, sequence_encodings, token_encodings, token_embeddings = [], [], [], []
             dataset_examples_seen = 0
             for batch in dataloader:
                 batch = {k: v.to(self.device) for k, v in batch.items()}
-                labels = batch.pop("label")
+                label = batch.pop("label")
                 with torch.no_grad():
                     outputs = self.model.forward(**batch, return_dict=True)
                 pooler_output = torch.squeeze(outputs['pooler_output'])
                 dataset_examples_seen += batch_size
-                scanned_data = {
-                    f"{dataset_id}/sequence_encoding": pooler_output.detach().cpu().numpy(),
-                    f"{dataset_id}/labels": labels.detach().cpu().numpy(),
-                    # f"{dataset_id}/token_embeddings": ...,
-                    # f"{dataset_id}/token_encodings": ...,
-                    f"{dataset_id}_examples_seen": dataset_examples_seen,
-                }
-                wandb.log(scanned_data)
+                labels.append(labels.detach().cpu().numpy())
+                sequence_encodings.append(pooler_output.detach().cpu().numpy())
+            np.save(self.output_dir/f"{dataset_id}_labels.npy", np.concatenate(labels))
+            np.save(self.output_dir/f"{dataset_id}_seq_enc.npy", np.concatenate(sequence_encodings))
+            np.save(self.output_dir/f"{dataset_id}_tok_enc.npy", np.concatenate(token_encodings))
+            np.save(self.output_dir/f"{dataset_id}_tok_emb.npy", np.concatenate(token_embeddings))
         log.info(f"Done scanning the datastream")
