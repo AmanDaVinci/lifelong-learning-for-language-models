@@ -69,11 +69,15 @@ class DatastreamScanner():
                 batch = {k: v.to(self.device) for k, v in batch.items()}
                 label = batch.pop("label")
                 with torch.no_grad():
+                    token_embedding = self.model.embeddings.word_embeddings(batch["input_ids"])
                     outputs = self.model.forward(**batch, return_dict=True)
                 pooler_output = torch.squeeze(outputs['pooler_output'])
+                last_hidden_state = outputs['last_hidden_state']
                 dataset_examples_seen += batch_size
                 labels.append(label.detach().cpu().numpy())
                 sequence_encodings.append(pooler_output.detach().cpu().numpy())
+                token_encodings.append(last_hidden_state.detach().cpu().numpy())
+                token_embeddings.append(token_embedding.detach().cpu().numpy())
             np.save(self.output_dir/f"{dataset_id}_labels.npy", np.concatenate(labels))
             np.save(self.output_dir/f"{dataset_id}_seq_enc.npy", np.concatenate(sequence_encodings))
             np.save(self.output_dir/f"{dataset_id}_tok_enc.npy", np.concatenate(token_encodings))
