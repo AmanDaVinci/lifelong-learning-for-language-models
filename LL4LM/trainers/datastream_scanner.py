@@ -72,7 +72,7 @@ class DatastreamScanner():
                     outputs = self.model.forward(**batch, return_dict=True)
                 pooler_output = torch.squeeze(outputs['pooler_output'])
                 dataset_examples_seen += batch_size
-                labels.append(labels.detach().cpu().numpy())
+                labels.append(label.detach().cpu().numpy())
                 sequence_encodings.append(pooler_output.detach().cpu().numpy())
             np.save(self.output_dir/f"{dataset_id}_labels.npy", np.concatenate(labels))
             np.save(self.output_dir/f"{dataset_id}_seq_enc.npy", np.concatenate(sequence_encodings))
