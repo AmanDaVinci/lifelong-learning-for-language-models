@@ -1,6 +1,7 @@
 seed: 42
 trainer: "LifelongTrainer"
 checkpoint_dir: "checkpoints"
+output_dir: "outputs"
 test_every_nsteps: 10 
 accumulate_gradient_every_nsteps: 2
 data:
