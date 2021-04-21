@@ -100,12 +100,9 @@ class LifelongTrainer(Trainer):
             f"Final Test Accuracies after seeing {examples_seen} examples:"\
             f"{format_dict(accuracies)}"
         )
-        df = pd.DataFrame(
-            [index, head_weights, head_biases], 
-            columns=["examples_seen", "head_weight", "head_bias"],
-            index_label="examples_seen"
-        )
-        df.to_csv(self.output_dir/"head_parameters.csv")
+        np.save(self.output_dir/"head_weights.npy", np.concatenate(head_weights))
+        np.save(self.output_dir/"head_biases.npy", np.concatenate(head_biases))
+        np.save(self.output_dir/"examples_seen.npy", np.array(examples_seen))
         save_path = self.ckpt_dir/f"{wandb.run.id}.pt"
         self.model.save(save_path)
         log.info(f"Trained model saved at {save_path}")
