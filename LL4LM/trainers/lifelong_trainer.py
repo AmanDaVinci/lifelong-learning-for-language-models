@@ -56,46 +56,48 @@ class LifelongTrainer(Trainer):
     def run(self):
         self.model.train()
         self.model.zero_grad()
-        format_dict = partial(json.dumps, indent=4)
         batch_size = self.config.data.batch_size
         test_every_nsteps = self.config.test_every_nsteps
-        accumulate_every_nsteps = self.config.accumulate_gradient_every_nsteps
-        assert test_every_nsteps % accumulate_every_nsteps == 0,\
-            f"Gradient accumulation interval ({test_every_nsteps}) "\
-            f"must be a factor of testing interval {test_every_nsteps}."
+        examples_seen = 0
+        index, head_weights, head_biases = [], [], []
+        losses, accuracies = self.test()
+        wandb.log(losses, step=examples_seen)
+        wandb.log(accuracies, step=examples_seen)
+        index.append(examples_seen)
+        head_weights.append(self.model.head.weight.detach().cpu().numpy())
+        head_biases.append(self.model.head.bias.detach().cpu().numpy())
+        format_dict = partial(json.dumps, indent=4)
         log.info(
-            f"Training the model with a batch size of {batch_size} "\
-            f"and accumulating gradients every {accumulate_every_nsteps} steps"
+            f"Test Accuracies before training:"\
+            f"{format_dict(accuracies)}"
         )
         wandb.watch(self.model, log="gradients", log_freq=test_every_nsteps)
-        index, head_weights, head_biases = [], [], []
-        examples_seen = 0
         for i, batch in enumerate(self.dataloader):
             examples_seen += batch_size
             loss, acc = self.model.step(batch)
             wandb.log({"train/loss": loss.item()}, step=examples_seen)
             wandb.log({"train/accuracy": acc}, step=examples_seen)
-            loss = loss / accumulate_every_nsteps
             loss.backward()
-            if i % accumulate_every_nsteps == 0:
-                self.opt.step()
-                self.model.zero_grad()
-                # test model only when no accumulated gradients exist
-                if i % test_every_nsteps == 0:
-                    losses, accuracies = self.test()
-                    wandb.log(losses, step=examples_seen)
-                    wandb.log(accuracies, step=examples_seen)
-                    index.append(examples_seen)
-                    head_weights.append(self.model.head.weight.detach().cpu().numpy())
-                    head_biases.append(self.model.head.bias.detach().cpu().numpy())
-                    log.info(
-                        f"Test Accuracies after seeing {examples_seen} examples:"\
-                        f"{format_dict(accuracies)}"
-                    )
+            self.opt.step()
+            self.model.zero_grad()
+            if (i+1) % test_every_nsteps == 0:
+                losses, accuracies = self.test()
+                wandb.log(losses, step=examples_seen)
+                wandb.log(accuracies, step=examples_seen)
+                index.append(examples_seen)
+                head_weights.append(self.model.head.weight.detach().cpu().numpy())
+                head_biases.append(self.model.head.bias.detach().cpu().numpy())
+                log.info(
+                    f"Test Accuracies after seeing {examples_seen} examples:"\
+                    f"{format_dict(accuracies)}"
+                )
         self.model.zero_grad()
         losses, accuracies = self.test()
         wandb.log(losses, step=examples_seen)
         wandb.log(accuracies, step=examples_seen)
+        index.append(examples_seen)
+        head_weights.append(self.model.head.weight.detach().cpu().numpy())
+        head_biases.append(self.model.head.bias.detach().cpu().numpy())
         log.info(
             f"Final Test Accuracies after seeing {examples_seen} examples:"\
             f"{format_dict(accuracies)}"
