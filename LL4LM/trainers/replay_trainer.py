@@ -18,10 +18,9 @@ class ReplayTrainer(LifelongTrainer):
         self.model.zero_grad()
         batch_size = self.config.data.batch_size
         test_every_nsteps = self.config.test_every_nsteps
-        # TODO: trainer specific config
-        replay_every_nsteps = self.config.replay_every_nsteps
-        num_replay_batches = self.config.num_replay_batches
-        add_probability = self.config.replay_add_probability
+        replay_every_nsteps = self.config.trainer.replay_every_nsteps
+        num_replay_batches = self.config.trainer.num_replay_batches
+        add_probability = self.config.trainer.replay_add_probability
         # log metrics before training starts
         examples_seen = 0
         index, head_weights, head_biases = [], [], []
