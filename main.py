@@ -1,12 +1,12 @@
 import wandb
 import hydra
-from hydra.utils import instantiate
+import importlib
 from omegaconf import DictConfig, OmegaConf
 
 from LL4LM.trainers.lifelong_trainer import LifelongTrainer
 from LL4LM.trainers.replay_trainer import ReplayTrainer
 from LL4LM.trainers.multitask_trainer import MultitaskTrainer
-from LL4LM.trainers.mixture_of_experts_trainer import MixtureOfExpertsTrainer
+from LL4LM.trainers.unitask_trainer import UnitaskTrainer
 from LL4LM.trainers.datastream_scanner import DatastreamScanner
 
 
@@ -14,18 +14,9 @@ from LL4LM.trainers.datastream_scanner import DatastreamScanner
 def main(config: DictConfig):
     dict_config = OmegaConf.to_container(config, resolve=True)
     with wandb.init(project="LL4LM", config=dict_config):
-        if config.trainer == "LifelongTrainer":
-            trainer = LifelongTrainer(config)
-        elif config.trainer == "ReplayTrainer":
-            trainer = ReplayTrainer(config)
-        elif config.trainer == "MultitaskTrainer":
-            trainer = MultitaskTrainer(config)
-        elif config.trainer == "MixtureOfExpertsTrainer":
-            trainer = MixtureOfExpertsTrainer(config)
-        elif config.trainer == "DatastreamScanner":
-            trainer = DatastreamScanner(config)
-        else:
-            raise NotImplementedError(f"{config.trainer} not implemented.")
+        module = importlib.import_module(config.trainer.module)
+        trainer_cls = getattr(module, config.trainer.class_name)
+        trainer = trainer_cls(config)
         trainer.run()
 
 
