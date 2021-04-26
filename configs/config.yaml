@@ -3,9 +3,9 @@ trainer: "LifelongTrainer"
 checkpoint_dir: "checkpoints"
 output_dir: "outputs"
 test_every_nsteps: 10 
-accumulate_gradient_every_nsteps: 2
+accumulate_gradient_every_nsteps: 2 
 data:
-  batch_size: 24
+  batch_size: 25
   test_batch_size: 64
   max_size_each_dataset: 10000
   testset_size: 1000
