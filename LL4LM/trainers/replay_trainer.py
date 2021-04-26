@@ -22,8 +22,9 @@ class ReplayTrainer(LifelongTrainer):
         replay_every_nsteps = self.config.replay_every_nsteps
         num_replay_batches = self.config.num_replay_batches
         add_probability = self.config.replay_add_probability
+        # log metrics before training starts
+        examples_seen = 0
         index, head_weights, head_biases = [], [], []
-        # metrics before training starts
         losses, accuracies = self.test()
         wandb.log(losses, step=examples_seen)
         wandb.log(accuracies, step=examples_seen)
@@ -36,7 +37,6 @@ class ReplayTrainer(LifelongTrainer):
             f"{format_dict(accuracies)}"
         )
         wandb.watch(self.model, log="gradients", log_freq=test_every_nsteps)
-        examples_seen = 0
         for i, batch in enumerate(self.dataloader):
             examples_seen += batch_size
             loss, acc = self.model.step(batch)
