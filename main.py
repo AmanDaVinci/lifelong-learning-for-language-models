@@ -4,7 +4,7 @@ from hydra.utils import instantiate
 from omegaconf import DictConfig, OmegaConf
 
 from LL4LM.trainers.lifelong_trainer import LifelongTrainer
-from LL4LM.trainers.lifelong_trainer import ReplayTrainer
+from LL4LM.trainers.replay_trainer import ReplayTrainer
 from LL4LM.trainers.multitask_trainer import MultitaskTrainer
 from LL4LM.trainers.mixture_of_experts_trainer import MixtureOfExpertsTrainer
 from LL4LM.trainers.datastream_scanner import DatastreamScanner
