@@ -7,7 +7,7 @@ from functools import partial
 from transformers import AdamW, AutoTokenizer, AutoModel
 
 from LL4LM.datastreams import DataStream, load_dataset_ids
-from LL4LM.model import LifelongLearner
+from LL4LM.models.lifelong_learner import LifelongLearner
 from LL4LM.trainers.trainer import Trainer
 
 import wandb

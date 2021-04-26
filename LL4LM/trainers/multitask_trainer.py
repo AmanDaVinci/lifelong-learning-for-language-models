@@ -5,7 +5,6 @@ from pathlib import Path
 from transformers import AdamW, AutoTokenizer, AutoModel
 
 from LL4LM.datastreams import DataStream, load_dataset_ids
-from LL4LM.model import LifelongLearner
 from LL4LM.trainers.lifelong_trainer import LifelongTrainer
 
 import wandb
