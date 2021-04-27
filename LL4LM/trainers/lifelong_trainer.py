@@ -6,7 +6,7 @@ from pathlib import Path
 from functools import partial
 from transformers import AdamW, AutoTokenizer, AutoModel
 
-from LL4LM.datastreams import DataStream, load_dataset_ids
+from LL4LM.datastreams import DataStream
 from LL4LM.models.lifelong_learner import LifelongLearner
 from LL4LM.trainers.trainer import Trainer
 
@@ -22,22 +22,16 @@ class LifelongTrainer(Trainer):
     
     def load_data(self):
         config = self.config.data
-        self.dataset_ids, self.testset_ids = load_dataset_ids(
-            multitask=config.multitask, 
-            multilingual=config.multilingual, 
-            multidomain=config.multidomain,
-            custom=config.custom,
-            shuffle=config.stream_shuffle
-        )
-        datastream = DataStream(self.dataset_ids)
-        teststream = DataStream(self.testset_ids)
-        if config.data_shuffle:
+        self.dataset_names = self.config.datastream
+        datastream = DataStream(self.dataset_names, split="train_split")
+        teststream = DataStream(self.dataset_names, split="test_split")
+        if config.shuffle:
             datastream.shuffle_datasets(self.config.seed)
-        datastream.limit_datasets(config.max_size_each_dataset)
+        datastream.limit_datasets(config.dataset_size)
         teststream.limit_datasets(config.testset_size)
         examples = datastream.sample_examples(config.n_samples_each_dataset)
         wandb.log({"Sampled_Examples": wandb.Table(dataframe=examples)}, step=0)
-        wandb.log({"Data_Stream": wandb.Table(dataframe=datastream.df())}, step=0)
+        wandb.log({"Data_Stream": wandb.Table(dataframe=datastream.summary())}, step=0)
         self.tokenizer = AutoTokenizer.from_pretrained(self.config.model.base_model)
         self.dataloader = datastream.get_dataloader(
             self.tokenizer, 
@@ -112,14 +106,14 @@ class LifelongTrainer(Trainer):
     def test(self):
         self.model.eval()
         testset_losses, testset_accuracies  = {}, {}
-        for testset_id, testloader in zip(self.testset_ids, self.testloaders):
+        for name, testloader in zip(self.dataset_names, self.testloaders):
             losses, accuracies = [], [] 
             for batch in testloader:
                 with torch.no_grad():
                     loss, acc = self.model.step(batch)
                 losses.append(loss.item())
                 accuracies.append(acc)
-            testset_losses[f"test/{testset_id}/loss"] = np.mean(losses)
-            testset_accuracies[f"test/{testset_id}/accuracy"] = np.mean(accuracies)
+            testset_losses[f"test/{name}/loss"] = np.mean(losses)
+            testset_accuracies[f"test/{name}/accuracy"] = np.mean(accuracies)
         self.model.train()
         return testset_losses, testset_accuracies
