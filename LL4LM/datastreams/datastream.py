@@ -1,9 +1,10 @@
 import random
 import pandas as pd
 from functools import partial
+from torch.utils.data import DataLoader
 from datasets import load_dataset, concatenate_datasets
 from datasets import Features, Value, ClassLabel
-from torch.utils.data import DataLoader
+from LL4LM.datastreams.datasets import dataset_configs
 
 
 class DataStream:
