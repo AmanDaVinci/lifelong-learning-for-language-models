@@ -33,7 +33,7 @@ class UnitaskTrainer(Trainer):
         wandb.log({"Sampled_Examples": wandb.Table(dataframe=examples)}, step=0)
         wandb.log({"Data_Stream": wandb.Table(dataframe=datastream.summary())}, step=0)
         self.tokenizer = AutoTokenizer.from_pretrained(self.config.model.base_model)
-        self.dataloader = datastream.get_dataloader(
+        self.dataloaders = datastream.get_dataloader(
             self.tokenizer, 
             batch_size=config.batch_size,
             concatenate=False, # dataloader for each dataset
