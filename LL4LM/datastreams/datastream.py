@@ -21,8 +21,8 @@ class DataStream:
             config = dataset_configs[name] 
             path = config["path"]
             name = config.get("name", None)
-            split = config[split]
-            dataset = load_dataset(path, name, split=split)
+            dataset_split = config[split]
+            dataset = load_dataset(path, name, split=dataset_split)
             filter_column = config.get("filter_column", None)
             filter_value = config.get("filter_value", None)
             if filter_column and filter_value:
