@@ -4,10 +4,9 @@ import importlib
 from omegaconf import DictConfig, OmegaConf
 
 from LL4LM.trainers.lifelong_trainer import LifelongTrainer
-from LL4LM.trainers.replay_trainer import ReplayTrainer
 from LL4LM.trainers.multitask_trainer import MultitaskTrainer
 from LL4LM.trainers.unitask_trainer import UnitaskTrainer
-from LL4LM.trainers.datastream_scanner import DatastreamScanner
+from LL4LM.trainers.replay_trainer import ReplayTrainer
 
 
 @hydra.main(config_path="configs", config_name="config")
