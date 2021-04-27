@@ -1,33 +1,51 @@
 import random
 import pandas as pd
 from functools import partial
-from datasets import concatenate_datasets
+from datasets import load_dataset, concatenate_datasets
+from datasets import Features, Value, ClassLabel
 from torch.utils.data import DataLoader
-from LL4LM.datastreams.loaders import load_datastream
 
 
 class DataStream:
+    features = Features({
+        "context":      Value("string"),
+        "statement":    Value("string"),
+        "label":        ClassLabel(2, names=["False", "True"])
+    })
 
-    def __init__(self, dataset_ids: list):
-        self.ids = dataset_ids
-        self.stream = [
-            load_datastream(id.path, id.name, id.split, id.filter_column, id.filter_value) 
-            for id in dataset_ids
-        ]
+    def __init__(self, dataset_names: list, split: str="train_split"):
+        self.dataset_names = dataset_names
+        self.stream = []
+        for name in dataset_names:
+            config = dataset_configs[name] 
+            path = config["path"]
+            name = config.get("name", None)
+            split = config[split]
+            dataset = load_dataset(path, name, split=split)
+            filter_column = config.get("filter_column", None)
+            filter_value = config.get("filter_value", None)
+            if filter_column and filter_value:
+                dataset = dataset.filter(lambda batch: batch[filter_column]==filter_value)
+            transform = config["transform"]
+            dataset = dataset.map(transform, batched=True, remove_columns=dataset.column_names)
+            try:
+                dataset = dataset.cast(self.features)
+            except:
+                raise ValueError(f"{transform} didn't transform to datastream features.")
+            self.stream.append(dataset)
     
-    # TODO: better name
-    def df(self):
+    def summary(self):
         return pd.DataFrame(
-            [(str(id), data.num_rows) for id, data in zip(self.ids, self.stream)],
+            [(name, data.num_rows) for name, data in zip(self.dataset_names, self.stream)],
             columns=["dataset", "num_examples"]
         )
 
     def sample_examples(self, num_per_dataset: int=1) -> pd.DataFrame:
         all_sample_data = []
-        for id, data in zip(self.ids, self.stream):
+        for name, data in zip(self.dataset_names, self.stream):
             sample_idxs = random.choices(range(data.num_rows), k=num_per_dataset)
             sample_data = data.select(sample_idxs).to_pandas()
-            sample_data["dataset"] = str(id)
+            sample_data["dataset"] = name
             all_sample_data.append(sample_data)
         return pd.concat(all_sample_data)
 
