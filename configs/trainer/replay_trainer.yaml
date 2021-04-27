@@ -3,4 +3,4 @@ module: LL4LM.trainers.replay_trainer
 class_name: ReplayTrainer
 replay_every_nsteps: 40
 num_replay_batches: 4
-replay_add_probability: 0.5
+replay_add_probability: 0.1
