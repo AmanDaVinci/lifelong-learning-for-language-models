@@ -9,15 +9,18 @@ log = logging.getLogger(__name__)
 
 
 def gradient_similarity(model, names, dataloaders):
-    grads, nonzero_grads_mask = {}, {}
+    grads, nonzero_mask = {}, {}
     for name, dataloader in zip(names, dataloaders):
-        grads[name], nonzero_mask[name] = get_gradients(model, dl)
+        grads[name], nonzero_mask[name] = get_gradients(model, dataloader)
     grad_sim, grad_shared = {}, {}
     cos_sim = nn.CosineSimilarity(dim=0)
     for task_i, grad_i in grads.items():
         for task_j, grad_j in grads.items():
             shared_mask = nonzero_mask[task_i] * nonzero_mask[task_j]
-            grad_sim[f"grad_sim/{task_i}-{task_j}"] = cos_sim(grad_i[shared_grad], grad_j[shared_grad]).detach().cpu().numpy().item()
+            grad_sim[f"grad_sim/{task_i}-{task_j}"] = cos_sim(
+                grad_i[shared_mask], 
+                grad_j[shared_mask]
+            ).detach().cpu().numpy().item()
             grad_shared[f"grad_shared/{task_i}-{task_j}"] = shared_mask.sum().detach().cpu().numpy().item()
     return grad_sim, grad_shared
 
