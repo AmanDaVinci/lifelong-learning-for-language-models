@@ -9,6 +9,7 @@ from transformers import AdamW, AutoTokenizer, AutoModel
 from LL4LM.datastreams import DataStream
 from LL4LM.models.lifelong_learner import LifelongLearner
 from LL4LM.trainers.trainer import Trainer
+from LL4LM.utils.gradients import gradient_similarity
 
 import wandb
 import logging
@@ -52,6 +53,7 @@ class LifelongTrainer(Trainer):
         self.model.zero_grad()
         batch_size = self.config.data.batch_size
         test_every_nsteps = self.config.test_every_nsteps
+        gradsim_interval = self.config.gradsim_interval
         examples_seen = 0
         index, head_weights, head_biases = [], [], []
         losses, accuracies = self.test()
@@ -85,6 +87,12 @@ class LifelongTrainer(Trainer):
                     f"Test Accuracies after seeing {examples_seen} examples:"\
                     f"{format_dict(accuracies)}"
                 )
+            if (i+1) % gradsim_interval == 0:
+                start = time.perf_counter()
+                grad_sim, grad_shared = gradient_similarity(self.model, self.dataset_names, self.testloaders)
+                log.info(f"Grad sim measured in {time.perf_counter()-start:.04f} secs")
+                wandb.log(task_sim, step=examples_seen)
+                wandb.log(task_shared, step=examples_seen)
         self.model.zero_grad()
         losses, accuracies = self.test()
         wandb.log(losses, step=examples_seen)
