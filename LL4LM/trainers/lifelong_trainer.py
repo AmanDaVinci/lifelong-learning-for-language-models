@@ -98,7 +98,7 @@ class LifelongTrainer(Trainer):
         )
         np.save(self.output_dir/"head_weights.npy", np.concatenate(head_weights))
         np.save(self.output_dir/"head_biases.npy", np.concatenate(head_biases))
-        np.save(self.output_dir/"examples_seen.npy", np.array(examples_seen))
+        np.save(self.output_dir/"index.npy", np.array(index))
         save_path = self.ckpt_dir/f"{wandb.run.id}.pt"
         self.model.save(save_path)
         log.info(f"Trained model saved at {save_path}")
