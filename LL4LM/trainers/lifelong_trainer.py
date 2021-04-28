@@ -4,7 +4,6 @@ import torch
 import random
 import numpy as np
 from pathlib import Path
-from functools import partial
 from transformers import AdamW, AutoTokenizer, AutoModel
 
 from LL4LM.datastreams import DataStream
@@ -57,17 +56,25 @@ class LifelongTrainer(Trainer):
         gradsim_interval = self.config.gradsim_interval
         examples_seen = 0
         index, head_weights, head_biases = [], [], []
-        losses, accuracies = self.test()
-        wandb.log(losses, step=examples_seen)
-        wandb.log(accuracies, step=examples_seen)
-        index.append(examples_seen)
-        head_weights.append(self.model.head.weight.detach().cpu().numpy())
-        head_biases.append(self.model.head.bias.detach().cpu().numpy())
-        format_dict = partial(json.dumps, indent=4)
-        log.info(
-            f"Test Accuracies before training:"\
-            f"{format_dict(accuracies)}"
-        )
+        def _test_log():
+            losses, accuracies = self.test()
+            wandb.log(losses, step=examples_seen)
+            wandb.log(accuracies, step=examples_seen)
+            index.append(examples_seen)
+            head_weights.append(self.model.head.weight.detach().cpu().numpy())
+            head_biases.append(self.model.head.bias.detach().cpu().numpy())
+            log.info(
+                f"Test Accuracies before training:"\
+                f"{json.dumps(accuracies, indent=4)}"
+            )
+        def _gradsim_log():
+            start = time.perf_counter()
+            grad_sim, grad_shared = gradient_similarity(self.model, self.dataset_names, self.testloaders)
+            log.info(f"Grad sim measured in {time.perf_counter()-start:.04f} secs")
+            wandb.log(task_sim, step=examples_seen)
+            wandb.log(task_shared, step=examples_seen)
+        _test_log()
+        _gradsim_log()
         wandb.watch(self.model, log="gradients", log_freq=test_every_nsteps)
         for i, batch in enumerate(self.dataloader):
             examples_seen += batch_size
@@ -78,33 +85,12 @@ class LifelongTrainer(Trainer):
             self.opt.step()
             self.model.zero_grad()
             if (i+1) % test_every_nsteps == 0:
-                losses, accuracies = self.test()
-                wandb.log(losses, step=examples_seen)
-                wandb.log(accuracies, step=examples_seen)
-                index.append(examples_seen)
-                head_weights.append(self.model.head.weight.detach().cpu().numpy())
-                head_biases.append(self.model.head.bias.detach().cpu().numpy())
-                log.info(
-                    f"Test Accuracies after seeing {examples_seen} examples:"\
-                    f"{format_dict(accuracies)}"
-                )
+                _test_log()
             if (i+1) % gradsim_interval == 0:
-                start = time.perf_counter()
-                grad_sim, grad_shared = gradient_similarity(self.model, self.dataset_names, self.testloaders)
-                log.info(f"Grad sim measured in {time.perf_counter()-start:.04f} secs")
-                wandb.log(task_sim, step=examples_seen)
-                wandb.log(task_shared, step=examples_seen)
+                _gradsim_log()
         self.model.zero_grad()
-        losses, accuracies = self.test()
-        wandb.log(losses, step=examples_seen)
-        wandb.log(accuracies, step=examples_seen)
-        index.append(examples_seen)
-        head_weights.append(self.model.head.weight.detach().cpu().numpy())
-        head_biases.append(self.model.head.bias.detach().cpu().numpy())
-        log.info(
-            f"Final Test Accuracies after seeing {examples_seen} examples:"\
-            f"{format_dict(accuracies)}"
-        )
+        _test_log()
+        _gradsim_log()
         np.save(self.output_dir/"head_weights.npy", np.concatenate(head_weights))
         np.save(self.output_dir/"head_biases.npy", np.concatenate(head_biases))
         np.save(self.output_dir/"index.npy", np.array(index))
