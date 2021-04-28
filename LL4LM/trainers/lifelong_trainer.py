@@ -72,7 +72,7 @@ class LifelongTrainer(Trainer):
             head_weights.append(self.model.head.weight.detach().cpu().numpy())
             head_biases.append(self.model.head.bias.detach().cpu().numpy())
             log.info(
-                f"Test Accuracies before training:"\
+                f"Test Accuracies at {examples_seen}:"\
                 f"{json.dumps(accuracies, indent=4)}"
             )
         def _gradsim_log():
