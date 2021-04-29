@@ -1,7 +1,7 @@
 seed: 42
 checkpoint_dir: "checkpoints"
 output_dir: "outputs"
-test_every_nsteps: 10 
+test_interval: 10 
 gradsim_interval: 20 
 data:
   shuffle: True
