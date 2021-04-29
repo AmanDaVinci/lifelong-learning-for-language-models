@@ -1,9 +1,11 @@
+import time
 import json
 import numpy as np
 from functools import partial
 
 from LL4LM.models.replay_memory import ReplayMemory
 from LL4LM.trainers.lifelong_trainer import LifelongTrainer
+from LL4LM.utils.gradients import gradient_similarity
 
 import wandb
 import logging
