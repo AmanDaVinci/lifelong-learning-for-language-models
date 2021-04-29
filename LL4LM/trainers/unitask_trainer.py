@@ -49,14 +49,14 @@ class UnitaskTrainer(Trainer):
 
     def run(self):
         batch_size = self.config.data.batch_size
-        test_every_nsteps = self.config.test_every_nsteps
+        test_interval = self.config.test_interval
         format_dict = partial(json.dumps, indent=4)
         examples_seen = 0
         for name, dataloader, testloader in zip(self.dataset_names, self.dataloaders, self.testloaders):
             self.load_model()
             self.model.train()
             log.info(f"Start training new model on {name}")
-            wandb.watch(self.model, log="gradients", log_freq=test_every_nsteps)
+            wandb.watch(self.model, log="gradients", log_freq=test_interval)
             dataset_examples_seen = 0
             for i, batch in enumerate(dataloader):
                 examples_seen += batch_size
