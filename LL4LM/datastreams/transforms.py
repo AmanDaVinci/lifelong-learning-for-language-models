@@ -306,3 +306,65 @@ def udpos(batch: dict) -> dict:
         "statement": statements,
         "label": labels
     }
+
+def yahoo_answers_topics(batch: dict) -> dict:
+    num_false_statements = 3
+    topics = ['Society & Culture', 'Science & Mathematics', 'Health', 'Education & Reference', 'Computers & Internet', 'Sports', 'Business & Finance', 'Entertainment & Music', 'Family & Relationships', 'Politics & Government']
+    contexts, statements, labels = [], [], []
+    for row in zip(batch["question_title"], 
+                   batch["question_content"],
+                   batch["best_answer"],
+                   batch["topic"]):
+        question_title, question_content, answer, label_int = row
+        contexts.append(" ".join([question_title, question_content, answer]))
+        label_str = topics[label_int]
+        statement = random.choice([
+            f"The topic is {label_str}.",
+            f"It belongs to the {label_str} topic.",
+        ])
+        statements.append(statement)
+        labels.append(1)
+        remaining_labels = [lbl for lbl in topics if lbl!=label_str]
+        for false_label in random.sample(remaining_labels, k=num_false_statements):
+            false_statement = random.choice([
+                f"The topic is {false_label}.",
+                f"It belongs to the {false_label} topic.",
+            ])
+            contexts.append(" ".join([question_title, question_content, answer]))
+            statements.append(false_statement)
+            labels.append(0)
+    return {
+        "context": contexts,
+        "statement": statements,
+        "label": labels
+    }
+
+def ag_news(batch: dict) -> dict:
+    topics = ['World', 'Sports', 'Business', 'Sci/Tech']
+    contexts, statements, labels = [], [], []
+    for row in zip(batch["text"], 
+                   batch["label"]):
+        text, label_int = row
+        contexts.append(text)
+        label_str = topics[label_int]
+        statement = random.choice([
+            f"The topic of the news headline is {label_str}.",
+            f"The headline belongs to the {label_str} topic.",
+        ])
+        statements.append(statement)
+        labels.append(1)
+        remaining_labels = [lbl for lbl in topics if lbl!=label_str]
+        for false_label_str in topics:
+            if false_label_str != label_str:
+                contexts.append(text)
+                false_statement = random.choice([
+                    f"The topic of the news headline is {false_label_str}.",
+                    f"The headline belongs to the {false_label_str} topic.",
+                ])
+                statements.append(false_statement)
+                labels.append(0)
+    return {
+        "context": contexts,
+        "statement": statements,
+        "label": labels
+    }
