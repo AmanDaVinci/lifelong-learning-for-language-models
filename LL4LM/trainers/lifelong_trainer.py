@@ -65,7 +65,9 @@ class LifelongTrainer(Trainer):
         examples_seen = 0
         index, head_weights, head_biases = [], [], []
         def _test_log():
+            start = time.perf_counter()
             losses, accuracies = self.test()
+            log.info(f"Testing done in {time.perf_counter()-start:.04f} secs")
             wandb.log(losses, step=examples_seen)
             wandb.log(accuracies, step=examples_seen)
             index.append(examples_seen)
