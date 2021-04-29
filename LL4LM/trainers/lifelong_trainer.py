@@ -60,7 +60,7 @@ class LifelongTrainer(Trainer):
         self.model.train()
         self.model.zero_grad()
         batch_size = self.config.data.batch_size
-        test_every_nsteps = self.config.test_every_nsteps
+        test_interval = self.config.test_interval
         gradsim_interval = self.config.gradsim_interval
         examples_seen = 0
         index, head_weights, head_biases = [], [], []
@@ -85,7 +85,7 @@ class LifelongTrainer(Trainer):
             wandb.log(grad_shared, step=examples_seen)
         _test_log()
         _gradsim_log()
-        wandb.watch(self.model, log="gradients", log_freq=test_every_nsteps)
+        wandb.watch(self.model, log="gradients", log_freq=test_interval)
         for i, batch in enumerate(self.dataloader):
             examples_seen += batch_size
             loss, acc = self.model.step(batch)
@@ -94,7 +94,7 @@ class LifelongTrainer(Trainer):
             loss.backward()
             self.opt.step()
             self.model.zero_grad()
-            if (i+1) % test_every_nsteps == 0:
+            if (i+1) % test_interval == 0:
                 _test_log()
             if (i+1) % gradsim_interval == 0:
                 _gradsim_log()
