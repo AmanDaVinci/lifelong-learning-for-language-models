@@ -22,8 +22,10 @@ class MultitaskTrainer(LifelongTrainer):
         self.dataset_names = self.config.datastream
         datastream = DataStream(self.dataset_names, split="train_split")
         teststream = DataStream(self.dataset_names, split="test_split")
+        gradstream = DataStream(self.dataset_names, split="test_split")
         datastream.limit_datasets(config.dataset_size)
         teststream.limit_datasets(config.testset_size)
+        gradstream.limit_datasets(config.gradset_size)
         examples = datastream.sample_examples(config.n_samples_each_dataset)
         wandb.log({"Sampled_Examples": wandb.Table(dataframe=examples)}, step=0)
         wandb.log({"Data_Stream": wandb.Table(dataframe=datastream.summary())}, step=0)
@@ -37,6 +39,12 @@ class MultitaskTrainer(LifelongTrainer):
         self.testloaders = teststream.get_dataloader(
             self.tokenizer, 
             batch_size=config.test_batch_size,
+            concatenate=False,
+            shuffle_examples=False
+        )
+        self.gradloaders = gradstream.get_dataloader(
+            self.tokenizer, 
+            batch_size=config.grad_batch_size,
             concatenate=False,
             shuffle_examples=False
         )

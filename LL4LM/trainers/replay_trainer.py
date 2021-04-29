@@ -17,25 +17,35 @@ class ReplayTrainer(LifelongTrainer):
         self.model.train()
         self.model.zero_grad()
         batch_size = self.config.data.batch_size
-        test_every_nsteps = self.config.test_every_nsteps
-        replay_every_nsteps = self.config.trainer.replay_every_nsteps
+        test_interval = self.config.test_interval
+        gradsim_interval = self.config.gradsim_interval
+        replay_interval = self.config.trainer.replay_interval
         num_replay_batches = self.config.trainer.num_replay_batches
         add_probability = self.config.trainer.replay_add_probability
-        # log metrics before training starts
         examples_seen = 0
         index, head_weights, head_biases = [], [], []
-        losses, accuracies = self.test()
-        wandb.log(losses, step=examples_seen)
-        wandb.log(accuracies, step=examples_seen)
-        index.append(examples_seen)
-        head_weights.append(self.model.head.weight.detach().cpu().numpy())
-        head_biases.append(self.model.head.bias.detach().cpu().numpy())
-        format_dict = partial(json.dumps, indent=4)
-        log.info(
-            f"Test Accuracies before training:"\
-            f"{format_dict(accuracies)}"
-        )
-        wandb.watch(self.model, log="gradients", log_freq=test_every_nsteps)
+        def _test_log():
+            start = time.perf_counter()
+            losses, accuracies = self.test()
+            log.info(f"Testing done in {time.perf_counter()-start:.04f} secs")
+            wandb.log(losses, step=examples_seen)
+            wandb.log(accuracies, step=examples_seen)
+            index.append(examples_seen)
+            head_weights.append(self.model.head.weight.detach().cpu().numpy())
+            head_biases.append(self.model.head.bias.detach().cpu().numpy())
+            log.info(
+                f"Test Accuracies at {examples_seen}:"\
+                f"{json.dumps(accuracies, indent=4)}"
+            )
+        def _gradsim_log():
+            start = time.perf_counter()
+            grad_sim, grad_shared = gradient_similarity(self.model, self.dataset_names, self.gradloaders)
+            log.info(f"Grad sim measured in {time.perf_counter()-start:.04f} secs")
+            wandb.log(grad_sim, step=examples_seen)
+            wandb.log(grad_shared, step=examples_seen)
+        _test_log()
+        _gradsim_log()
+        wandb.watch(self.model, log="gradients", log_freq=test_interval)
         for i, batch in enumerate(self.dataloader):
             examples_seen += batch_size
             loss, acc = self.model.step(batch)
@@ -45,7 +55,7 @@ class ReplayTrainer(LifelongTrainer):
             self.opt.step()
             self.model.zero_grad()
             replay_memory.add(batch, add_probability)
-            if (i+1) % replay_every_nsteps == 0:
+            if (i+1) % replay_interval == 0:
                 for batch in replay_memory.sample(num_replay_batches):
                     loss, acc = self.model.step(batch)
                     loss.backward()
@@ -56,28 +66,13 @@ class ReplayTrainer(LifelongTrainer):
                         "replay/accuracy": acc,
                         "replay/memory_size": len(replay_memory)
                     })
-            if (i+1) % test_every_nsteps == 0:
-                losses, accuracies = self.test()
-                wandb.log(losses, step=examples_seen)
-                wandb.log(accuracies, step=examples_seen)
-                index.append(examples_seen)
-                head_weights.append(self.model.head.weight.detach().cpu().numpy())
-                head_biases.append(self.model.head.bias.detach().cpu().numpy())
-                log.info(
-                    f"Test Accuracies after seeing {examples_seen} examples:"\
-                    f"{format_dict(accuracies)}"
-                )
+            if (i+1) % test_interval == 0:
+                _test_log()
+            if (i+1) % gradsim_interval == 0:
+                _gradsim_log()
         self.model.zero_grad()
-        losses, accuracies = self.test()
-        wandb.log(losses, step=examples_seen)
-        wandb.log(accuracies, step=examples_seen)
-        index.append(examples_seen)
-        head_weights.append(self.model.head.weight.detach().cpu().numpy())
-        head_biases.append(self.model.head.bias.detach().cpu().numpy())
-        log.info(
-            f"Final Test Accuracies after seeing {examples_seen} examples:"\
-            f"{format_dict(accuracies)}"
-        )
+        _test_log()
+        _gradsim_log()
         np.save(self.output_dir/"head_weights.npy", np.concatenate(head_weights))
         np.save(self.output_dir/"head_biases.npy", np.concatenate(head_biases))
         np.save(self.output_dir/"index.npy", np.array(index))
