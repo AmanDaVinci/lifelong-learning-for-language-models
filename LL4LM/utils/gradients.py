@@ -25,30 +25,26 @@ def gradient_similarity(model, names, dataloaders):
     return grad_sim, grad_shared
 
 def get_gradients(model, dataloader):
-    opt = optim.AdamW(model.parameters())
     # accumulate gradients
     for i, batch in enumerate(dataloader):
-        # log.debug(f"batch idx: {i} batch shape: {batch['input_ids'].shape}")
         loss, _ = model.step(batch)
         # scale loss to accumulate the average of gradients
         loss = loss/len(dataloader) 
         loss.backward()
     # extract gradients and indexes of nonzero gradients
     grads, nonzero_mask = [], []
-    # TODO: could be done without using optim
-    for param_group in opt.param_groups:
-        for p in param_group['params']:
-            if p.grad is not None:
-                # TODO: clone does not work for some reason
-                grad = deepcopy(p.grad.detach().flatten())
-                grads.append(grad)
-                mask = (grad!=0.0).to(p.device)
-                nonzero_mask.append(mask)
-            # case for heads of a shared base network
-            # where grad will be None
-            else:
-                shape = p.flatten().shape
-                grads.append(torch.zeros(shape).to(p.device))
-                nonzero_mask.append(torch.zeros(shape).bool().to(p.device))
+    for _, p in model.named_parameters():
+        if p.grad is not None:
+            # TODO: clone does not work for some reason
+            grad = deepcopy(p.grad.detach().flatten())
+            grads.append(grad)
+            mask = (grad!=0.0).to(p.device)
+            nonzero_mask.append(mask)
+        # case for heads of a shared base network
+        # where grad will be None
+        else:
+            shape = p.flatten().shape
+            grads.append(torch.zeros(shape).to(p.device))
+            nonzero_mask.append(torch.zeros(shape).bool().to(p.device))
     model.zero_grad()
     return torch.cat(grads), torch.cat(nonzero_mask)
