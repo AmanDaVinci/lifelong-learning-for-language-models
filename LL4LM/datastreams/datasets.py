@@ -35,6 +35,18 @@ dataset_configs = {
         "test_split": "test", 
         "transform": amazon_reviews
     },
+    "ans_topic": {
+        "path": "yahoo_answers_topics",
+        "train_split": "train", 
+        "test_split": "test", 
+        "transform": yahoo_answers_topics
+    },
+    "ag_news": {
+        "path": "ag_news",
+        "train_split": "train", 
+        "test_split": "test", 
+        "transform": ag_news
+    },
     # --------------------------------------------------------------------------
     # multidomain
     # --------------------------------------------------------------------------
