@@ -96,7 +96,7 @@ class LifelongTrainer(Trainer):
             self.opt.step()
             wandb.log({"train/loss": loss.item()}, step=examples_seen)
             wandb.log({"train/accuracy": acc}, step=examples_seen)
-            if (i+1) % self.config.interference_measurement_interval == 0:
+            if (i+1) % train_grad_interval == 0:
                 outputs = sequential_gradient_interference(self.model, grads, nonzero_indices)
                 grads, nonzero_indices, interference, overlap = outputs
                 wandb.log({"gradient/interference": interference}, step=examples_seen)
