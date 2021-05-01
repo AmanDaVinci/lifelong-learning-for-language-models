@@ -8,7 +8,7 @@ import logging
 log = logging.getLogger(__name__)
 
 def sequential_gradient_interference(model, prev_grads, prev_nonzero_indices):
-    grads, nonzero_indices = get_gradients(model, dataloader)
+    grads, nonzero_indices = get_gradients(model)
     if prev_grads is None or prev_nonzero_indices is None:
         prev_grads = torch.zeros_like(grads).to(grads.device)
         prev_nonzero_indices = torch.zeros_like(nonzero_indices).to(grads.device)
