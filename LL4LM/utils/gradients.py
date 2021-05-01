@@ -1,12 +1,29 @@
 import logging
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from torch import optim
 from copy import deepcopy
 
 import logging
 log = logging.getLogger(__name__)
 
+def gradient_interference(model, prev_grads):
+    grads = []
+    for _, p in model.named_parameters():
+        if p.grad is not None:
+            grad = deepcopy(p.grad.detach().flatten())
+            grads.append(grad)
+        # case for heads of a shared base network
+        # where grad will be None
+        else:
+            shape = p.flatten().shape
+            grads.append(torch.zeros(shape).to(p.device))
+    grads = torch.cat(grads)
+    if prev_grads is None:
+        prev_grads = torch.zeros_like(grads).to(grads.device)
+    interference = 1 - F.cosine_similarity(grads, prev_grads, dim=0) 
+    return interference, grads
 
 def gradient_similarity(model, names, dataloaders):
     grads, nonzero_mask = {}, {}
