@@ -96,8 +96,8 @@ class LifelongTrainer(Trainer):
             if (i+1) % self.config.interference_measurement_interval == 0:
                 outputs = gradient_interference(self.model, grads, nonzero_indices)
                 grads, nonzero_indices, interference, overlap = outputs
-                wandb.log({"gradient_interference": interference}, step=examples_seen)
-                wandb.log({"gradient_overlap": overlap}, step=examples_seen)
+                wandb.log({"gradient/interference": interference}, step=examples_seen)
+                wandb.log({"gradient/overlap": overlap}, step=examples_seen)
             self.opt.step()
             self.model.zero_grad()
             if (i+1) % test_interval == 0:
