@@ -78,10 +78,6 @@ class LifelongTrainer(Trainer):
                 f"Test Accuracies at {examples_seen}:"\
                 f"{json.dumps(accuracies, indent=4)}"
             )
-        def _interference_log():
-            interference, grads = gradient_interference(self.model, prev_grads)
-            prev_grads = grads
-            wandb.log(interference, step=examples_seen)
         def _gradsim_log():
             start = time.perf_counter()
             grad_sim, grad_shared = gradient_similarity(self.model, self.dataset_names, self.gradloaders)
@@ -94,20 +90,21 @@ class LifelongTrainer(Trainer):
         for i, batch in enumerate(self.dataloader):
             examples_seen += batch_size
             loss, acc = self.model.step(batch)
+            loss.backward()
             wandb.log({"train/loss": loss.item()}, step=examples_seen)
             wandb.log({"train/accuracy": acc}, step=examples_seen)
-            loss.backward()
+            if (i+1) % self.config.interference_measurement_interval == 0:
+                interference, grads = gradient_interference(self.model, prev_grads)
+                prev_grads = grads
+                wandb.log(interference, step=examples_seen)
             self.opt.step()
             self.model.zero_grad()
             if (i+1) % test_interval == 0:
                 _test_log()
-            if (i+1) % self.config.interference_measurement_interval == 0:
-                _interference_log()
             if (i+1) % gradsim_interval == 0:
                 _gradsim_log()
         self.model.zero_grad()
         _test_log()
-        _interference_log()
         _gradsim_log()
         np.save(self.output_dir/"head_weights.npy", np.concatenate(head_weights))
         np.save(self.output_dir/"head_biases.npy", np.concatenate(head_biases))
