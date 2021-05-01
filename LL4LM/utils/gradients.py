@@ -30,7 +30,7 @@ def gradient_interference(model, prev_grads, prev_nonzero_indices):
         prev_nonzero_indices = torch.zeros_like(nonzero_indices).to(grads.device)
     interference = 1 - F.cosine_similarity(grads, prev_grads, dim=0) 
     overlap = torch.sum(nonzero_indices * prev_nonzero_indices)
-    return grads, interference, overlap
+    return grads, nonzero_indices, interference, overlap
 
 def gradient_similarity(model, names, dataloaders):
     grads, nonzero_mask = {}, {}
