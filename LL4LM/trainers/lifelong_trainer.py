@@ -9,7 +9,7 @@ from transformers import AdamW, AutoTokenizer, AutoModel
 from LL4LM.datastreams import DataStream
 from LL4LM.models.lifelong_learner import LifelongLearner
 from LL4LM.trainers.trainer import Trainer
-from LL4LM.utils.gradients import gradient_similarity, gradient_interference
+from LL4LM.utils.gradients import pairwise_gradient_similarity, sequential_gradient_interference
 
 import wandb
 import logging
@@ -81,7 +81,7 @@ class LifelongTrainer(Trainer):
             )
         def _test_grad_log():
             start = time.perf_counter()
-            grad_sim, grad_shared = gradient_similarity(self.model, self.dataset_names, self.gradloaders)
+            grad_sim, grad_shared = pairwise_gradient_similarity(self.model, self.dataset_names, self.gradloaders)
             log.info(f"Grad sim measured in {time.perf_counter()-start:.04f} secs")
             wandb.log(grad_sim, step=examples_seen)
             wandb.log(grad_shared, step=examples_seen)
@@ -90,17 +90,17 @@ class LifelongTrainer(Trainer):
         wandb.watch(self.model, log="gradients", log_freq=test_interval)
         for i, batch in enumerate(self.dataloader):
             examples_seen += batch_size
+            self.model.zero_grad()
             loss, acc = self.model.step(batch)
             loss.backward()
+            self.opt.step()
             wandb.log({"train/loss": loss.item()}, step=examples_seen)
             wandb.log({"train/accuracy": acc}, step=examples_seen)
             if (i+1) % self.config.interference_measurement_interval == 0:
-                outputs = gradient_interference(self.model, grads, nonzero_indices)
+                outputs = sequential_gradient_interference(self.model, grads, nonzero_indices)
                 grads, nonzero_indices, interference, overlap = outputs
                 wandb.log({"gradient/interference": interference}, step=examples_seen)
                 wandb.log({"gradient/overlap": overlap}, step=examples_seen)
-            self.opt.step()
-            self.model.zero_grad()
             if (i+1) % test_interval == 0:
                 _test_log()
             if (i+1) % test_grad_interval == 0:
