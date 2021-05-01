@@ -61,7 +61,8 @@ class LifelongTrainer(Trainer):
         self.model.zero_grad()
         batch_size = self.config.data.batch_size
         test_interval = self.config.test_interval
-        gradsim_interval = self.config.gradsim_interval
+        test_grad_interval = self.config.test_grad_interval
+        train_grad_interval = self.config.train_grad_interval
         examples_seen = 0
         grads, nonzero_indices = None, None
         index, head_weights, head_biases = [], [], []
@@ -78,14 +79,14 @@ class LifelongTrainer(Trainer):
                 f"Test Accuracies at {examples_seen}:"\
                 f"{json.dumps(accuracies, indent=4)}"
             )
-        def _gradsim_log():
+        def _test_grad_log():
             start = time.perf_counter()
             grad_sim, grad_shared = gradient_similarity(self.model, self.dataset_names, self.gradloaders)
             log.info(f"Grad sim measured in {time.perf_counter()-start:.04f} secs")
             wandb.log(grad_sim, step=examples_seen)
             wandb.log(grad_shared, step=examples_seen)
         _test_log()
-        _gradsim_log()
+        _test_grad_log()
         wandb.watch(self.model, log="gradients", log_freq=test_interval)
         for i, batch in enumerate(self.dataloader):
             examples_seen += batch_size
@@ -102,11 +103,11 @@ class LifelongTrainer(Trainer):
             self.model.zero_grad()
             if (i+1) % test_interval == 0:
                 _test_log()
-            if (i+1) % gradsim_interval == 0:
-                _gradsim_log()
+            if (i+1) % test_grad_interval == 0:
+                _test_grad_log()
         self.model.zero_grad()
         _test_log()
-        _gradsim_log()
+        _test_grad_log()
         np.save(self.output_dir/"head_weights.npy", np.concatenate(head_weights))
         np.save(self.output_dir/"head_biases.npy", np.concatenate(head_biases))
         np.save(self.output_dir/"index.npy", np.array(index))
