@@ -63,7 +63,7 @@ class LifelongTrainer(Trainer):
         test_interval = self.config.test_interval
         gradsim_interval = self.config.gradsim_interval
         examples_seen = 0
-        prev_grads = None
+        grads, nonzero_indices = None, None
         index, head_weights, head_biases = [], [], []
         def _test_log():
             start = time.perf_counter()
@@ -94,9 +94,10 @@ class LifelongTrainer(Trainer):
             wandb.log({"train/loss": loss.item()}, step=examples_seen)
             wandb.log({"train/accuracy": acc}, step=examples_seen)
             if (i+1) % self.config.interference_measurement_interval == 0:
-                interference, grads = gradient_interference(self.model, prev_grads)
-                prev_grads = grads
-                wandb.log(interference, step=examples_seen)
+                outputs = gradient_interference(self.model, grads, nonzero_indices)
+                grads, nonzero_indices, interference, overlap = outputs
+                wandb.log({"gradient_interference": interference}, step=examples_seen)
+                wandb.log({"gradient_overlap": overlap}, step=examples_seen)
             self.opt.step()
             self.model.zero_grad()
             if (i+1) % test_interval == 0:

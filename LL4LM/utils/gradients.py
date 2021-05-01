@@ -8,22 +8,29 @@ from copy import deepcopy
 import logging
 log = logging.getLogger(__name__)
 
-def gradient_interference(model, prev_grads):
-    grads = []
+def gradient_interference(model, prev_grads, prev_nonzero_indices):
+    grads, nonzero_indices = [], []
     for _, p in model.named_parameters():
         if p.grad is not None:
+            # TODO: clone does not work for some reason
             grad = deepcopy(p.grad.detach().flatten())
             grads.append(grad)
+            mask = (grad!=0.0).to(p.device)
+            nonzero_indices.append(mask)
         # case for heads of a shared base network
         # where grad will be None
         else:
             shape = p.flatten().shape
             grads.append(torch.zeros(shape).to(p.device))
+            nonzero_indices.append(torch.zeros(shape).bool().to(p.device))
     grads = torch.cat(grads)
-    if prev_grads is None:
+    nonzero_indices = torch.cat(nonzero_indices)
+    if prev_grads is None or prev_nonzero_indices is None:
         prev_grads = torch.zeros_like(grads).to(grads.device)
+        prev_nonzero_indices = torch.zeros_like(nonzero_indices).to(grads.device)
     interference = 1 - F.cosine_similarity(grads, prev_grads, dim=0) 
-    return interference, grads
+    overlap = torch.sum(nonzero_indices * prev_nonzero_indices)
+    return grads, interference, overlap
 
 def gradient_similarity(model, names, dataloaders):
     grads, nonzero_mask = {}, {}
