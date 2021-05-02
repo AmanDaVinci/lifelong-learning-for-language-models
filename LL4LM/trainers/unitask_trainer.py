@@ -76,8 +76,14 @@ class UnitaskTrainer(Trainer):
                 if (i+1) % train_grad_interval == 0:
                     outputs = sequential_gradient_interference(self.model, grads, nonzero_indices)
                     grads, nonzero_indices, interference, overlap = outputs
-                    wandb.log({"gradient/interference": interference}, step=examples_seen)
-                    wandb.log({"gradient/overlap": overlap}, step=examples_seen)
+                    wandb.log(
+                        {
+                            f"gradient/{name}/interference": interference,
+                            f"gradient/{name}/overlap": overlap,
+                            f"{name}_examples_seen": dataset_examples_seen,
+                        }, 
+                        step=examples_seen
+                    )
             self.model.zero_grad()
             save_path = self.ckpt_dir/f"{wandb.run.id}-{name}.pt"
             self.model.save(save_path)
