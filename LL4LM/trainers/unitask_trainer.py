@@ -4,11 +4,11 @@ import torch
 import json
 import numpy as np
 from pathlib import Path
-from functools import partial
 from transformers import AdamW, AutoTokenizer, AutoModel
 
 from LL4LM.datastreams import DataStream
 from LL4LM.trainers.trainer import Trainer
+from LL4LM.utils.gradients import sequential_gradient_interference
 
 import wandb
 import logging
@@ -50,18 +50,21 @@ class UnitaskTrainer(Trainer):
     def run(self):
         batch_size = self.config.data.batch_size
         test_interval = self.config.test_interval
-        format_dict = partial(json.dumps, indent=4)
+        train_grad_interval = self.config.train_grad_interval
         examples_seen = 0
         for name, dataloader, testloader in zip(self.dataset_names, self.dataloaders, self.testloaders):
             self.load_model()
             self.model.train()
             log.info(f"Start training new model on {name}")
-            wandb.watch(self.model, log="gradients", log_freq=test_interval)
             dataset_examples_seen = 0
+            grads, nonzero_indices = None, None
             for i, batch in enumerate(dataloader):
                 examples_seen += batch_size
                 dataset_examples_seen += batch_size
+                self.model.zero_grad()
                 loss, acc = self.model.step(batch)
+                loss.backward()
+                self.opt.step()
                 wandb.log(
                     {
                         f"train/{name}/loss": loss.item(),
@@ -70,9 +73,11 @@ class UnitaskTrainer(Trainer):
                     }, 
                     step=examples_seen
                 )
-                loss.backward()
-                self.opt.step()
-                self.model.zero_grad()
+                if (i+1) % train_grad_interval == 0:
+                    outputs = sequential_gradient_interference(self.model, grads, nonzero_indices)
+                    grads, nonzero_indices, interference, overlap = outputs
+                    wandb.log({"gradient/interference": interference}, step=examples_seen)
+                    wandb.log({"gradient/overlap": overlap}, step=examples_seen)
             self.model.zero_grad()
             save_path = self.ckpt_dir/f"{wandb.run.id}-{name}.pt"
             self.model.save(save_path)
