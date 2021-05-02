@@ -33,7 +33,8 @@ def pairwise_gradient_similarity(model, names, dataloaders):
             shared_mask = nonzero_mask[task_i] * nonzero_mask[task_j]
             grad_sim[f"grad_sim/{task_i}/{task_j}"] = F.cosine_similarity(
                 grad_i[shared_mask], 
-                grad_j[shared_mask]
+                grad_j[shared_mask],
+                dim=0
             ).detach().cpu().numpy().item()
             grad_shared[f"grad_shared/{task_i}/{task_j}"] = shared_mask.sum().detach().cpu().numpy().item()
     return grad_sim, grad_shared
