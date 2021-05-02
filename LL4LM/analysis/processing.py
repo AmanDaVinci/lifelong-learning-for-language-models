@@ -31,3 +31,18 @@ def get_train_accuracies(logs, rolling_window=20, dataset_name=None):
     accuracy = logs[column].dropna(axis=0).squeeze()
     return accuracy.rolling(rolling_window, min_periods=1).mean().dropna()
 
+def get_gradient_measurements(logs, stream, measurement="interference", rolling_window=20):
+    column = f"gradient/{measurement}"
+    if column in logs:
+        values = logs[column].dropna()
+    else:
+        boundary = 0
+        values = []
+        for dataset_name, dataset_examples in stream:
+            idx, col = f"{dataset_name}_examples_seen", f"gradient/{dataset_name}/{measurement}"
+            value = logs.set_index(idx)[col].dropna()
+            value.index = value.index + boundary
+            values.append(value)
+            boundary += dataset_examples
+        values = pd.concat(values)
+    return values[values>0].rolling(rolling_window, min_periods=1).mean().dropna()
