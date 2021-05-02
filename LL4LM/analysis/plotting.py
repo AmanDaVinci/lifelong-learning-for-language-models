@@ -25,16 +25,15 @@ def plot_lifelong_curve(name, stream, logs, multitask_logs, unitask_logs,
                         training=True, testing=False, testing_detailed=False):
     fig, ax, boundaries = draw_canvas(stream)
     if training:
-        exp_accuracies = get_train_accuracies(logs, rolling_window=20)
-        mtl_accuracies = get_train_accuracies(multitask_logs, rolling_window=20)
+        exp_accuracies = get_train_accuracies(logs, stream, rolling_window=20)
+        mtl_accuracies = get_train_accuracies(multitask_logs, stream, rolling_window=20)
+        utl_accuracies = get_train_accuracies(unitask_logs, stream, rolling_window=20)
         ax.plot(exp_accuracies.index, exp_accuracies.values, 
                 label=f"{name} Training", color="tab:orange")
         ax.plot(mtl_accuracies.index, mtl_accuracies.values, 
                  label="Multi-task Training", color="tab:pink", alpha=0.5)
-        for dataset_name, _ in stream:
-            utl_accuracy = get_train_accuracies(unitask_logs, 20, dataset_name)
-            ax.plot(utl_accuracy.index, utl_accuracy.values, 
-                    color="blue", alpha=0.3, label="Uni-task Training")
+        ax.plot(utl_accuracies.index, utl_accuracies.values, 
+                 label="Uni-task Training", color="blue", alpha=0.3)
     elif testing:
         exp_accuracies = get_test_accuracies(logs, stream)
         mtl_accuracies = get_test_accuracies(multitask_logs, stream)

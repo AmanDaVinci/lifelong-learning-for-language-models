@@ -26,10 +26,21 @@ def get_test_accuracies(logs, stream, unitask=False):
         return pd.Series({col.split("/")[1]: logs[col].dropna().squeeze() for col in test_columns})
     return logs[test_columns].dropna(axis=0).rename(lambda col: col.split("/")[1], axis="columns")
 
-def get_train_accuracies(logs, rolling_window=20, dataset_name=None):
-    column = f"train/{dataset_name}/accuracy" if dataset_name else "train/accuracy"
-    accuracy = logs[column].dropna(axis=0).squeeze()
-    return accuracy.rolling(rolling_window, min_periods=1).mean().dropna()
+def get_train_accuracies(logs, stream, rolling_window=20):
+    column = "train/accuracy"
+    if column in logs:
+        accuracies = logs[column].dropna(axis=0).squeeze()
+    else:
+        boundary = 0
+        accuracies = []
+        for dataset_name, dataset_examples in stream:
+            idx, col = f"{dataset_name}_examples_seen", f"train/{dataset_name}/accuracy"
+            accuracy = logs.set_index(idx)[col].dropna()
+            accuracy.index = accuracy.index + boundary
+            accuracies.append(accuracy)
+            boundary += dataset_examples
+        accuracies = pd.concat(accuracies)
+    return accuracies.rolling(rolling_window, min_periods=1).mean().dropna()
 
 def get_gradient_measurements(logs, stream, measurement="interference", rolling_window=20):
     column = f"gradient/{measurement}"
