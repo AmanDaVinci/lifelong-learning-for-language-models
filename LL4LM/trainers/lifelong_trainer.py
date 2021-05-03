@@ -87,7 +87,6 @@ class LifelongTrainer(Trainer):
             wandb.log(grad_shared, step=examples_seen)
         _test_log()
         _test_grad_log()
-        wandb.watch(self.model, log="gradients", log_freq=test_interval)
         for i, batch in enumerate(self.dataloader):
             examples_seen += batch_size
             self.model.zero_grad()
