@@ -56,6 +56,20 @@ class DataStream:
     def limit_datasets(self, max_size: int):
         self.stream = [data.select(range(max_size)) if max_size<=data.num_rows else data
                        for data in self.stream]
+
+    def resize_datasets(self, new_size: int):
+        new_stream = []
+        for data in self.stream:
+            if new_size <= data.num_rows:
+                new_stream.append(data.select(range(new_size)))
+            elif new_size > data.num_rows:
+                size = data.num_rows
+                resized_data = concatenate_datasets(
+                    [data for _ in range(new_size//size)] +\
+                    [data.select(range(new_size%size))]
+                )
+                new_stream.append(resized_data)
+        self.stream = new_stream
     
     def remix_datasets(self, indices: list):
         assert len(self.stream) == len(indices), \
