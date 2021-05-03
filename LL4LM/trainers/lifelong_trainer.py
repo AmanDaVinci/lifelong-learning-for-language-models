@@ -29,7 +29,7 @@ class LifelongTrainer(Trainer):
         gradstream = DataStream(self.dataset_names, split="test_split")
         if config.shuffle:
             datastream.shuffle_datasets(self.config.seed)
-        datastream.limit_datasets(config.dataset_size)
+        datastream.resize_datasets(config.dataset_size)
         teststream.limit_datasets(config.testset_size)
         gradstream.limit_datasets(config.gradset_size)
         examples = datastream.sample_examples(config.n_samples_each_dataset)
