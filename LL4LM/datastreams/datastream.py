@@ -64,12 +64,13 @@ class DataStream:
                 new_stream.append(data.select(range(new_size)))
             elif new_size > data.num_rows:
                 size = data.num_rows
+                num_duplications, remaining_rows = new_size//size, new_size%size
                 # BUG: https://github.com/huggingface/datasets/pull/2025
                 # HOTFIX: Create and cache a new dataset using flatten_indices()
-                resized_data = concatenate_datasets(
-                    [data.flatten_indices() for _ in range(new_size//size)] +\
-                    [data.select(range(new_size%size)).flatten_indices()]
-                )
+                resized_data = [data.flatten_indices()] * num_duplications
+                if remaining_rows:
+                    resized_data += [data.select(range(remaining_rows)).flatten_indices()] 
+                resized_data = concatenate_datasets(resized_data)
                 new_stream.append(resized_data)
         self.stream = new_stream
     
