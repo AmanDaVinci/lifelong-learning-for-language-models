@@ -48,6 +48,44 @@ dataset_configs = {
         "transform": ag_news
     },
     # --------------------------------------------------------------------------
+    # multilingual
+    # --------------------------------------------------------------------------
+    "pan_ner_ar": {
+        "path": "wikiann",
+        "name": "ar",
+        "train_split": "train",
+        "test_split": "test",
+        "transform": wikiann
+    },
+    "pan_ner_bn": {
+        "path": "wikiann",
+        "name": "bn",
+        "train_split": "train",
+        "test_split": "test",
+        "transform": wikiann
+    },
+    "pan_ner_ru": {
+        "path": "wikiann",
+        "name": "ru",
+        "train_split": "train",
+        "test_split": "test",
+        "transform": wikiann
+    },
+    "pan_ner_ta": {
+        "path": "wikiann",
+        "name": "ta",
+        "train_split": "train",
+        "test_split": "test",
+        "transform": wikiann
+    },
+    "pan_ner_zh": {
+        "path": "wikiann",
+        "name": "zh",
+        "train_split": "train",
+        "test_split": "test",
+        "transform": wikiann
+    },
+    # --------------------------------------------------------------------------
     # multidomain
     # --------------------------------------------------------------------------
     "reviews_home": {
