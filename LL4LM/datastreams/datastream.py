@@ -64,9 +64,11 @@ class DataStream:
                 new_stream.append(data.select(range(new_size)))
             elif new_size > data.num_rows:
                 size = data.num_rows
+                # BUG: https://github.com/huggingface/datasets/pull/2025
+                # HOTFIX: Create and cache a new dataset using flatten_indices()
                 resized_data = concatenate_datasets(
-                    [data for _ in range(new_size//size)] +\
-                    [data.select(range(new_size%size))]
+                    [data.flatten_indices() for _ in range(new_size//size)] +\
+                    [data.select(range(new_size%size)).flatten_indices()]
                 )
                 new_stream.append(resized_data)
         self.stream = new_stream
