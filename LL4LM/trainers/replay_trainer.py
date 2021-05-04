@@ -69,11 +69,6 @@ class ReplayTrainer(LifelongTrainer):
                     loss.backward()
                     self.opt.step()
                     self.model.zero_grad()
-                    wandb.log({
-                        "replay/loss": loss.item(),
-                        "replay/accuracy": acc,
-                        "replay/memory_size": len(replay_memory)
-                    })
             if (i+1) % test_interval == 0:
                 _test_log()
             if (i+1) % test_grad_interval == 0:
