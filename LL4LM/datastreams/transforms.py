@@ -368,3 +368,66 @@ def ag_news(batch: dict) -> dict:
         "statement": statements,
         "label": labels
     }
+
+def dbpedia(batch: dict) -> dict:
+    topics = ['Company', 'Educational Institution', 'Artist', 'Athlete', 'Office Holder', 'Mean Of Transportation', 'Building', 'Natural Place', 'Village', 'Animal', 'Plant', 'Album', 'Film', 'Written Work']
+    num_false_statements = 3
+    contexts, statements, labels = [], [], []
+    for row in zip(batch["content"], batch["label"]):
+        text, label_int = row
+        contexts.append(text)
+        label_str = topics[label_int]
+        statement = random.choice([
+            f"The topic is {label_str}.",
+            f"It belongs to the {label_str} topic.",
+        ])
+        statements.append(statement)
+        labels.append(1)
+        remaining_labels = [lbl for lbl in topics if lbl!=label_str]
+        for false_label in random.sample(remaining_labels, k=num_false_statements):
+            false_statement = random.choice([
+                f"The topic is {false_label}.",
+                f"It belongs to the {false_label} topic.",
+            ])
+            contexts.append(text)
+            statements.append(false_statement)
+            labels.append(0)
+    return {
+        "context": contexts,
+        "statement": statements,
+        "label": labels
+    }
+
+def yelp_review_full(batch: dict) -> dict:
+    label2string = {
+        0:'negative',
+        1:'negative', 
+        2:'neutral',
+        3:'positive',
+        4:'positive',
+    }
+    contexts, statements, labels = [], [], []
+    for row in zip(batch["text"], batch["label"]):
+        text, label_int = row
+        contexts.append(text)
+        label_str = label2string[label_int]
+        statement = random.choice([
+            f"It is a {label_str} review.",
+            f"The sentiment is {label_str}.",
+        ])
+        statements.append(statement)
+        labels.append(1)
+        for other_label_int, other_label_str in label2string.items():
+            if other_label_str != label_str:
+                contexts.append(text)
+                statement = random.choice([
+                    f"It is a {other_label_str} review.",
+                    f"The sentiment is {other_label_str}.",
+                ])
+                statements.append(statement)
+                labels.append(0)
+    return {
+        "context": contexts,
+        "statement": statements,
+        "label": labels
+    }

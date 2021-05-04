@@ -35,18 +35,6 @@ dataset_configs = {
         "test_split": "test", 
         "transform": amazon_reviews
     },
-    "ans_topic": {
-        "path": "yahoo_answers_topics",
-        "train_split": "train", 
-        "test_split": "test", 
-        "transform": yahoo_answers_topics
-    },
-    "ag_news": {
-        "path": "ag_news",
-        "train_split": "train", 
-        "test_split": "test", 
-        "transform": ag_news
-    },
     # --------------------------------------------------------------------------
     # multilingual
     # --------------------------------------------------------------------------
@@ -87,6 +75,33 @@ dataset_configs = {
     },
     # --------------------------------------------------------------------------
     # multidomain
+    # --------------------------------------------------------------------------
+    "ag_news": {
+        "path": "ag_news",
+        "train_split": "train", 
+        "test_split": "test", 
+        "transform": ag_news
+    },
+    "ans_topic": {
+        "path": "yahoo_answers_topics",
+        "train_split": "train", 
+        "test_split": "test", 
+        "transform": yahoo_answers_topics
+    },
+    "dbpedia": {
+        "path": "dbpedia_14",
+        "train_split": "train", 
+        "test_split": "test", 
+        "transform": dbpedia
+    },
+    "yelp_review": {
+        "path": "yelp_reviews_full",
+        "train_split": "train", 
+        "test_split": "test", 
+        "transform": yelp_review_full
+    },
+    # --------------------------------------------------------------------------
+    # reviews multidomain
     # --------------------------------------------------------------------------
     "reviews_home": {
         "path": "amazon_reviews_multi",
