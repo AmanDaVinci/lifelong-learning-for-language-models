@@ -95,7 +95,7 @@ dataset_configs = {
         "transform": dbpedia
     },
     "yelp_review": {
-        "path": "yelp_reviews_full",
+        "path": "yelp_review_full",
         "train_split": "train", 
         "test_split": "test", 
         "transform": yelp_review_full
