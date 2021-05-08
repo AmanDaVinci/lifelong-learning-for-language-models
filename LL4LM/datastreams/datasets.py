@@ -52,16 +52,16 @@ dataset_configs = {
         "test_split": "test",
         "transform": wikiann
     },
-    "pan_ner_ru": {
+    "pan_ner_tr": {
         "path": "wikiann",
-        "name": "ru",
+        "name": "tr",
         "train_split": "train",
         "test_split": "test",
         "transform": wikiann
     },
-    "pan_ner_ta": {
+    "pan_ner_fi": {
         "path": "wikiann",
-        "name": "ta",
+        "name": "fi",
         "train_split": "train",
         "test_split": "test",
         "transform": wikiann
