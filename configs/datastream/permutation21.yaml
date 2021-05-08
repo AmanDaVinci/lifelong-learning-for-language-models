@@ -1,0 +1,6 @@
+# @package _group_
+- pan_ner
+- boolq
+- reviews
+- few_rel
+- record
