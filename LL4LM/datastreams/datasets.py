@@ -74,6 +74,50 @@ dataset_configs = {
         "transform": wikiann
     },
     # --------------------------------------------------------------------------
+    # NLI multidomain
+    # --------------------------------------------------------------------------
+    "mnli_fiction": {
+        "path": "multi_nli",
+        "train_split": "train", 
+        "test_split": "validation_matched", 
+        "filter_column": "genre",
+        "filter_value": "fiction",
+        "transform": mnli
+    },
+    "mnli_government": {
+        "path": "multi_nli",
+        "train_split": "train", 
+        "test_split": "validation_matched", 
+        "filter_column": "genre",
+        "filter_value": "government",
+        "transform": mnli
+    },
+    "mnli_slate": {
+        "path": "multi_nli",
+        "train_split": "train", 
+        "test_split": "validation_matched", 
+        "filter_column": "genre",
+        "filter_value": "slate",
+        "transform": mnli
+    },
+    "mnli_telephone": {
+        "path": "multi_nli",
+        "train_split": "train", 
+        "test_split": "validation_matched", 
+        "filter_column": "genre",
+        "filter_value": "telephone",
+        "transform": mnli
+    },
+    "mnli_travel": {
+        "path": "multi_nli",
+        "train_split": "train", 
+        "test_split": "validation_matched", 
+        "filter_column": "genre",
+        "filter_value": "travel",
+        "transform": mnli
+    },
+
+    # --------------------------------------------------------------------------
     # multidomain
     # --------------------------------------------------------------------------
     "ag_news": {
