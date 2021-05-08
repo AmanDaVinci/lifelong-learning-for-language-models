@@ -7,6 +7,17 @@ from copy import deepcopy
 import logging
 log = logging.getLogger(__name__)
 
+def project(grads, other_grads):
+    with torch.no_grad():
+        flat_grads = torch.cat([torch.flatten(x) for x in grads])
+        flat_other_grads = torch.cat([torch.flatten(x) for x in other_grads])
+        dot_product = torch.dot(flat_grads, flat_other_grads)
+        if dot_product >= 0:
+            return grads
+        proj_component = dot_product / torch.dot(flat_other_grads, flat_other_grads)
+        proj_grads = [g - proj_component * o for (g, o) in zip(grads, other_grads)]
+    return proj_grads
+
 def sequential_gradient_interference(model, prev_grads, prev_nonzero_indices):
     grads, nonzero_indices = get_gradients(model)
     if prev_grads is None or prev_nonzero_indices is None:
