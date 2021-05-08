@@ -1,5 +1,6 @@
 import time
 import json
+import torch
 import numpy as np
 from functools import partial
 
