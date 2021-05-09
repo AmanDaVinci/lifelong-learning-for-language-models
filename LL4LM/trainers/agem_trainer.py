@@ -31,7 +31,7 @@ class AGEMTrainer(LifelongTrainer):
         num_replay_batches = self.config.trainer.num_replay_batches
         add_probability = self.config.trainer.replay_add_probability
         examples_seen = 0
-        grads, nonzero_indices = None, None
+        projected_grads, nonzero_indices = None, None
         index, head_weights, head_biases = [], [], []
         def _test_log():
             start = time.perf_counter()
@@ -68,7 +68,7 @@ class AGEMTrainer(LifelongTrainer):
                     sum_replay_grads = [x+y for x, y in zip(replay_grads, sum_replay_grads)]
                 projected_grads = project(grads, sum_replay_grads)
             else:
-                projected_grad = grads
+                projected_grads = grads
             for param, grad in zip(params, projected_grads):
                 param.grad = grad.data
             self.opt.step()
