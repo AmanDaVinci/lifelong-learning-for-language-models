@@ -9,23 +9,18 @@ MAX_SAMPLES = 1e6
 
 def get_permutation_experiments():
     api = wandb.Api()
-    names, run_ids = [], []
-    mtl_names, mtl_run_ids = [], []
-    utl_names, utl_run_ids = [], []
+    run_ids, mtl_run_ids, utl_run_ids = [], [], []
     stream = set(['boolq', 'few_rel', 'pan_ner', 'record', 'reviews'])
     for run in api.runs(f"{ENTITY}/{PROJECT}"):
         run_stream = set(run.config.get('datastream', []))
         if run_stream==stream:
             if run.config['trainer']['class_name']=='LifelongTrainer':
                 run_ids.append(run.id)
-                names.append(run.name)
             elif run.config['trainer']['class_name']=='MultitaskTrainer':
                 mtl_run_ids.append(run.id)
-                mtl_names.append(run.name)
             elif run.config['trainer']['class_name']=='UnitaskTrainer':
                 utl_run_ids.append(run.id)
-                utl_names.append(run.name)
-    return names, run_ids, mtl_names, mtl_run_ids, utl_names, utl_run_ids
+    return run_ids, mtl_run_ids, utl_run_ids
 
 def get_experiment_data(run_id, entity=ENTITY, project=PROJECT):
     api = wandb.Api()

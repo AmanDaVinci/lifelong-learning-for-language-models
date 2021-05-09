@@ -1,6 +1,6 @@
 import pandas as pd
-from LL4LM.analysis.processing import get_experiment_data
 from LL4LM.analysis.metrics import measure_lifelong_metrics
+from LL4LM.analysis.processing import get_experiment_data, get_permutation_experiments
 from LL4LM.analysis.plotting import (
     plot_lifelong_curve, 
     plot_gradient_interference, 
@@ -44,5 +44,24 @@ def generate_comparative_report(run_ids, multitask_run_id, unitask_run_id):
     for run_id in run_ids:
         exp_logs, stream, name = get_experiment_data(run_id)
         df = measure_lifelong_metrics("Lifelong", stream, exp_logs, mtl_logs, utl_logs)
+        report.append(df.loc["Average"].rename(name))
+    return pd.concat(report, axis=1).T
+
+def generate_permutation_report():
+    name_map = {
+        "boolq": "b", # boolean qa
+        "few_rel": "r", # relation extraction
+        "pan_ner": "n", # named entity recognition
+        "record": "m", # multi-choice qa
+        "reviews": "s" # sentiment classification
+    }
+    run_ids, mtl_run_ids, utl_run_ids = get_permutation_experiments()
+    mtl_logs, _, _ = get_experiment_data(mtl_run_ids[0])
+    utl_logs, _, _ = get_experiment_data(utl_run_ids[0])
+    report = []
+    for run_id in run_ids:
+        exp_logs, stream, _ = get_experiment_data(run_id)
+        df = measure_lifelong_metrics("Lifelong", stream, exp_logs, mtl_logs, utl_logs)
+        name = "".join([name_map[dataset_name] for dataset_name, _ in stream])
         report.append(df.loc["Average"].rename(name))
     return pd.concat(report, axis=1).T
