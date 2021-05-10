@@ -85,9 +85,6 @@ class UnitaskTrainer(Trainer):
                         step=examples_seen
                     )
             self.model.zero_grad()
-            save_path = self.ckpt_dir/f"{wandb.run.id}-{name}.pt"
-            self.model.save(save_path)
-            log.info(f"Trained model saved at {save_path}")
             loss, acc = self.test(testloader)
             wandb.log({f"test/{name}/loss": loss.item()}, step=examples_seen)
             wandb.log({f"test/{name}/accuracy": acc}, step=examples_seen)
