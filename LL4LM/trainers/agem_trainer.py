@@ -66,12 +66,16 @@ class AGEMTrainer(LifelongTrainer):
                     loss, acc = self.model.step(batch)
                     replay_grads = torch.autograd.grad(loss, params)
                     sum_replay_grads = [x+y for x, y in zip(replay_grads, sum_replay_grads)]
+                    del replay_grads
                 projected_grads = project(grads, sum_replay_grads)
+                del sum_replay_grads
             else:
                 projected_grads = grads
             for param, grad in zip(params, projected_grads):
                 param.grad = grad.data
             self.opt.step()
+            del grads
+            del projected_grads
             replay_memory.add(batch, add_probability)
             wandb.log({"train/loss": loss.item()}, step=examples_seen)
             wandb.log({"train/accuracy": acc}, step=examples_seen)
