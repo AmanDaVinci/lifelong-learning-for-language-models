@@ -14,7 +14,7 @@ def get_permutation_experiments():
     for run in api.runs(f"{ENTITY}/{PROJECT}"):
         run_stream = set(run.config.get('datastream', []))
         if run_stream==stream:
-            if run.config['trainer']['class_name']=='LifelongTrainer':
+            if run.config['trainer']['class_name']=='LifelongTrainer' and "permutation" in run.tags:
                 run_ids.append(run.id)
             elif run.config['trainer']['class_name']=='MultitaskTrainer':
                 mtl_run_ids.append(run.id)
