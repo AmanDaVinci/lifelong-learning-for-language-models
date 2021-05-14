@@ -10,7 +10,7 @@ def boolq(batch: dict) -> dict:
 
 def cb(batch: dict) -> dict:
     label2string = {0:'entailment', 1:'contradiction', 2:'neutral'}
-    task_descriptors = [". This implies ", ". This is "]
+    task_descriptors = ["This implies ", "This is "]
     contexts, statements, labels = [], [], []
     for row in zip(batch["premise"], 
                    batch["hypothesis"],
@@ -80,7 +80,7 @@ def record(batch: dict) -> dict:
         
 def rte(batch: dict) -> dict:
     label2string = {0:'entailment', 1:'not_entailment'}
-    task_descriptors = [". This implies ", ". This is "]
+    task_descriptors = ["This implies ", "This is "]
     contexts, statements, labels = [], [], []
     for row in zip(batch["premise"], 
                    batch["hypothesis"],
@@ -157,7 +157,7 @@ def mnli(batch: dict) -> dict:
 
 def xnli(batch: dict) -> dict:
     all_labels = ('entailment', 'neutral', 'contradiction')
-    task_descriptors = [". This implies ", ". This is "]
+    task_descriptors = ["This implies ", "This is "]
     contexts, statements, labels = [], [], []
     for row in zip(batch["sentence1"], 
                    batch["sentence2"],
