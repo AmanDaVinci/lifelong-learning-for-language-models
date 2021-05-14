@@ -25,7 +25,7 @@ dataset_configs = {
         "path": "super_glue",
         "name": "record",
         "train_split": "train",
-        "test_split": "test",
+        "test_split": "validation",
         "transform": record
     },
     "reviews": {
