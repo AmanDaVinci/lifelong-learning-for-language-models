@@ -40,6 +40,10 @@ class DataStream:
             [(name, data.num_rows) for name, data in zip(self.dataset_names, self.stream)],
             columns=["dataset", "num_examples"]
         )
+    
+    def save(self, path):
+        for name, data in zip(self.dataset_names, self.stream):
+            data.to_pandas().to_csv(path/f"name.csv", index=False)
 
     def sample_examples(self, num_per_dataset: int=1) -> pd.DataFrame:
         all_sample_data = []
