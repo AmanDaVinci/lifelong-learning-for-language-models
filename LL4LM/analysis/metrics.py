@@ -61,14 +61,14 @@ def measure_lifelong_metrics(name, stream, logs, multitask_logs, unitask_logs):
     lfl_intransigence = intransigence_measure(exp_accuracies, utl_accuracies).rename(f"{name} Intransigence")
     mtl_intransigence = intransigence_measure(mtl_accuracies, utl_accuracies).rename("Multitask Intransigence")
     lfl_running_accuracy = final_accuracy(exp_accuracies).rename(f"{name} Running Accuracy")
-    lfl_accuracy = final_accuracy(exp_accuracies).rename(f"{name} Final Accuracy")
-    mtl_accuracy = final_accuracy(mtl_accuracies).rename("Multitask Final Accuracy")
-    utl_accuracy = final_accuracy(utl_accuracies).rename("Unitask Final Accuracy")
+    lfl_final_accuracy = final_accuracy(exp_accuracies).rename(f"{name} Final Accuracy")
+    mtl_final_accuracy = final_accuracy(mtl_accuracies).rename("Multitask Final Accuracy")
+    utl_final_accuracy = final_accuracy(utl_accuracies).rename("Unitask Final Accuracy")
     df = pd.concat(
         [lfl_auc, mtl_auc, 
          lfl_forgetting, mtl_forgetting, 
          lfl_intransigence, mtl_intransigence, 
-         lfl_accuracy, mtl_accuracy, utl_accuracy], 
+         lfl_running_accuracy, lfl_final_accuracy, mtl_final_accuracy, utl_final_accuracy], 
         axis=1
     )
     return df
