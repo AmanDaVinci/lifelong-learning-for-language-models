@@ -1,7 +1,7 @@
 seed: 42
 checkpoint_dir: "checkpoints"
 output_dir: "outputs"
-test_interval: 10 
+test_interval: 20 
 test_grad_interval: 400 
 train_grad_interval: 2 
 data:
