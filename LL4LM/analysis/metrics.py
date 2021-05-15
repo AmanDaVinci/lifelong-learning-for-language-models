@@ -3,14 +3,16 @@ from sklearn.metrics import auc
 from LL4LM.analysis.processing import get_test_accuracies
 
 def running_accuracy(accuracy_matrix):
+    dataset_ids = accuracy_matrix.columns.tolist()
+    num_datasets = len(dataset_ids)
+    interval = len(accuracy_matrix)//num_datasets 
     datasets_seen = []
     running_average = dict()
     for idx, dataset_id in enumerate(dataset_ids):
         datasets_seen.append(dataset_id)
         boundary_idx = ((idx+1) * interval)
-        boundary_step = lfl_acc.iloc[boundary_idx].name 
-        print(boundary_step)
-        row = lfl_acc.loc[boundary_step, datasets_seen]
+        boundary_step = accuracy_matrix.iloc[boundary_idx].name 
+        row = accuracy_matrix.loc[boundary_step, datasets_seen]
         running_average[dataset_id] = row.mean()
     running_average = pd.Series(running_average)
     running_average["Average"] = running_average.mean()
@@ -60,7 +62,7 @@ def measure_lifelong_metrics(name, stream, logs, multitask_logs, unitask_logs):
     mtl_forgetting = forgetting_measure(mtl_accuracies).rename("Multitask Forgetting")
     lfl_intransigence = intransigence_measure(exp_accuracies, utl_accuracies).rename(f"{name} Intransigence")
     mtl_intransigence = intransigence_measure(mtl_accuracies, utl_accuracies).rename("Multitask Intransigence")
-    lfl_running_accuracy = final_accuracy(exp_accuracies).rename(f"{name} Running Accuracy")
+    lfl_running_accuracy = running_accuracy(exp_accuracies).rename(f"{name} Running Accuracy")
     lfl_final_accuracy = final_accuracy(exp_accuracies).rename(f"{name} Final Accuracy")
     mtl_final_accuracy = final_accuracy(mtl_accuracies).rename("Multitask Final Accuracy")
     utl_final_accuracy = final_accuracy(utl_accuracies).rename("Unitask Final Accuracy")
