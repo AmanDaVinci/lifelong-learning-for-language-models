@@ -42,8 +42,9 @@ class DataStream:
         )
     
     def save(self, path):
+        path.mkdir(parents=True, exist_ok=True)
         for name, data in zip(self.dataset_names, self.stream):
-            data.to_pandas().to_csv(path/f"name.csv", index=False)
+            data.to_pandas().to_csv(path/f"{name}.csv", index=False)
 
     def sample_examples(self, num_per_dataset: int=1) -> pd.DataFrame:
         all_sample_data = []
