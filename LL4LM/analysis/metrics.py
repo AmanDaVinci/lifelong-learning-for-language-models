@@ -2,6 +2,20 @@ import pandas as pd
 from sklearn.metrics import auc
 from LL4LM.analysis.processing import get_test_accuracies
 
+def running_accuracy(accuracy_matrix):
+    datasets_seen = []
+    running_average = dict()
+    for idx, dataset_id in enumerate(dataset_ids):
+        datasets_seen.append(dataset_id)
+        boundary_idx = ((idx+1) * interval)
+        boundary_step = lfl_acc.iloc[boundary_idx].name 
+        print(boundary_step)
+        row = lfl_acc.loc[boundary_step, datasets_seen]
+        running_average[dataset_id] = row.mean()
+    running_average = pd.Series(running_average)
+    running_average["Average"] = running_average.mean()
+    return running_average
+
 def lifelong_auc(accuracy_matrix):
     auc_df = accuracy_matrix.apply(lambda x: auc(accuracy_matrix.index, x)/accuracy_matrix.index[-1], axis=0)
     auc_df["Average"] = auc_df.mean()
@@ -15,7 +29,7 @@ def intransigence_measure(accuracy_matrix, unitask_accuracies):
     boundary_examples_seen = dict()
     for idx, dataset_id in enumerate(dataset_ids):
         # zero indexing and batch overlap
-        boundary_idx = ((idx+1) * interval) - 2 
+        boundary_idx = ((idx+1) * interval) - 1 
         row = accuracy_matrix.iloc[boundary_idx]
         boundary_accuracy[dataset_id] = row[dataset_id]
         boundary_examples_seen[dataset_id] = row.name
@@ -46,9 +60,10 @@ def measure_lifelong_metrics(name, stream, logs, multitask_logs, unitask_logs):
     mtl_forgetting = forgetting_measure(mtl_accuracies).rename("Multitask Forgetting")
     lfl_intransigence = intransigence_measure(exp_accuracies, utl_accuracies).rename(f"{name} Intransigence")
     mtl_intransigence = intransigence_measure(mtl_accuracies, utl_accuracies).rename("Multitask Intransigence")
-    lfl_accuracy = final_accuracy(exp_accuracies).rename(f"{name} Accuracy")
-    mtl_accuracy = final_accuracy(mtl_accuracies).rename("Multitask Accuracy")
-    utl_accuracy = final_accuracy(utl_accuracies).rename("Unitask Accuracy")
+    lfl_running_accuracy = final_accuracy(exp_accuracies).rename(f"{name} Running Accuracy")
+    lfl_accuracy = final_accuracy(exp_accuracies).rename(f"{name} Final Accuracy")
+    mtl_accuracy = final_accuracy(mtl_accuracies).rename("Multitask Final Accuracy")
+    utl_accuracy = final_accuracy(utl_accuracies).rename("Unitask Final Accuracy")
     df = pd.concat(
         [lfl_auc, mtl_auc, 
          lfl_forgetting, mtl_forgetting, 
