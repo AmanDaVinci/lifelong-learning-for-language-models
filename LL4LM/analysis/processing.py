@@ -3,7 +3,7 @@ import wandb
 import pandas as pd
 
 ENTITY = "aman"
-PROJECT = "LL4LM"
+PROJECT = "lifelong-learning"
 STREAM_COLUMN = "Data_Stream"
 MAX_SAMPLES = 1e6
 

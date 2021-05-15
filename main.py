@@ -12,7 +12,7 @@ from LL4LM.trainers.replay_trainer import ReplayTrainer
 @hydra.main(config_path="configs", config_name="config")
 def main(config: DictConfig):
     dict_config = OmegaConf.to_container(config, resolve=True)
-    with wandb.init(project="LL4LM", config=dict_config):
+    with wandb.init(project="lifelong-learning", config=dict_config):
         module = importlib.import_module(config.trainer.module)
         trainer_cls = getattr(module, config.trainer.class_name)
         trainer = trainer_cls(config)
