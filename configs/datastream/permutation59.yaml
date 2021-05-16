@@ -1,6 +1,6 @@
 # @package _group_
-- reviews
-- record
-- boolq
+- wic
 - few_rel
-- pan_ner
+- boolq
+- yelp_review
+- udpos
