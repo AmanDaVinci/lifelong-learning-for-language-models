@@ -62,7 +62,8 @@ def generate_permutation_report():
     for run_id in run_ids:
         exp_logs, stream, _ = get_experiment_data(run_id)
         df = measure_lifelong_metrics("Lifelong", stream, exp_logs, mtl_logs, utl_logs)
-        name = "".join([name_map[dataset_name] for dataset_name, _ in stream])
+        # name = "".join([name_map[dataset_name] for dataset_name, _ in stream])
+        name = "".join([dataset_name[0] for dataset_name, _ in stream])
         row = df.loc["Average"].rename(name)
         row["id"] = run_id
         report.append(row)

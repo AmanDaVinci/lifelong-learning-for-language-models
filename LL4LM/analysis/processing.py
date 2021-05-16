@@ -3,6 +3,7 @@ import wandb
 import pandas as pd
 
 ENTITY = "aman"
+# PROJECT = "LL4LM"
 PROJECT = "lifelong-learning"
 STREAM_COLUMN = "Data_Stream"
 MAX_SAMPLES = 1e6
@@ -10,7 +11,8 @@ MAX_SAMPLES = 1e6
 def get_permutation_experiments():
     api = wandb.Api()
     run_ids, mtl_run_ids, utl_run_ids = [], [], []
-    stream = set(['boolq', 'few_rel', 'pan_ner', 'record', 'reviews'])
+    # stream = set(['boolq', 'few_rel', 'pan_ner', 'record', 'reviews'])
+    stream = set(['boolq', 'few_rel', 'udpos', 'wic', 'yelp_review'])
     for run in api.runs(f"{ENTITY}/{PROJECT}"):
         run_stream = set(run.config.get('datastream', []))
         if run_stream==stream:
