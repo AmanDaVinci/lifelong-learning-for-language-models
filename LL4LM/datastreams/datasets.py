@@ -36,6 +36,44 @@ dataset_configs = {
         "transform": amazon_reviews
     },
     # --------------------------------------------------------------------------
+    # multilingual pos
+    # --------------------------------------------------------------------------
+    "udpos_ar": {
+        "path": "universal_dependencies",
+        "name": "ar_padt",
+        "train_split": "train",
+        "test_split": "test",
+        "transform": udpos
+    },
+    "udpos_hi": {
+        "path": "universal_dependencies",
+        "name": "hi_hdtb",
+        "train_split": "train",
+        "test_split": "test",
+        "transform": udpos
+    },
+    "udpos_tr": {
+        "path": "universal_dependencies",
+        "name": "tr_boun",
+        "train_split": "train",
+        "test_split": "test",
+        "transform": udpos
+    },
+    "udpos_fi": {
+        "path": "universal_dependencies",
+        "name": "fi_tdt",
+        "train_split": "train",
+        "test_split": "test",
+        "transform": udpos
+    },
+    "udpos_zh": {
+        "path": "universal_dependencies",
+        "name": "zh_gsd",
+        "train_split": "train",
+        "test_split": "test",
+        "transform": udpos
+    },
+    # --------------------------------------------------------------------------
     # multilingual
     # --------------------------------------------------------------------------
     "pan_ner_ar": {
