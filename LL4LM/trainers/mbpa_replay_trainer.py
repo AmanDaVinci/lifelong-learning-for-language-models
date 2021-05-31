@@ -9,7 +9,7 @@ from copy import deepcopy
 from torch.optim import SGD
 
 from LL4LM.datastreams import DataStream
-from LL4LM.trainers.trainer import Trainer
+from LL4LM.trainers.lifelong_trainer import LifelongTrainer
 from LL4LM.models.mbpa_memory import MbpaMemory
 from LL4LM.models.lifelong_learner import LifelongLearner
 from transformers import AdamW, AutoTokenizer, AutoModel
@@ -19,7 +19,7 @@ import logging
 log = logging.getLogger(__name__)
 
 
-class MbPAReplayTrainer(Trainer):
+class MbPAReplayTrainer(LifelongTrainer):
 
     def run(self):
         self.dataloader_keys = get_dataloader_keys(self.dataloader, self.config.model.base_model)
