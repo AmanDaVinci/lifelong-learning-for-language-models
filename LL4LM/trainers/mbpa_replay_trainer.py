@@ -8,8 +8,10 @@ from pathlib import Path
 from copy import deepcopy
 from torch.optim import SGD
 
-from LL4LM.models.mbpa import MbPA
 from LL4LM.datastreams import DataStream
+from LL4LM.trainers.trainer import Trainer
+from LL4LM.models.mbpa_memory import MbpaMemory
+from LL4LM.models.lifelong_learner import LifelongLearner
 from transformers import AdamW, AutoTokenizer, AutoModel
 
 import wandb
@@ -17,68 +19,12 @@ import logging
 log = logging.getLogger(__name__)
 
 
-class MbPAReplayTrainer():
-
-    def __init__(self, config: dict):
-        self.config = config
-        self.output_dir = Path(config.output_dir)/wandb.run.id
-        self.output_dir.mkdir(parents=True, exist_ok=True)
-        self.set_seed(config.seed)
-        self.load_data()
-        self.load_model()
-
-    def set_seed(self, seed: int):
-        random.seed(seed)
-        np.random.seed(seed)
-        torch.manual_seed(seed)
-        torch.backends.cudnn.deterministic = True
-        torch.backends.cudnn.benchmark = False
-        log.info(f"Setting seed: {seed}")
-
-    def load_data(self):
-        config = self.config.data
-        self.dataset_names = self.config.datastream
-        datastream = DataStream(self.dataset_names, split="train_split")
-        teststream = DataStream(self.dataset_names, split="test_split")
-        if config.shuffle:
-            datastream.shuffle_datasets(self.config.seed)
-        datastream.resize_datasets(config.dataset_size)
-        teststream.limit_datasets(config.testset_size)
-        examples = datastream.sample_examples(config.n_samples_each_dataset)
-        wandb.log({"Sampled_Examples": wandb.Table(dataframe=examples)}, step=0)
-        wandb.log({"Data_Stream": wandb.Table(dataframe=datastream.summary())}, step=0)
-        self.tokenizer = AutoTokenizer.from_pretrained(self.config.model.base_model)
-        self.dataloader = datastream.get_dataloader(
-            self.tokenizer, 
-            batch_size=config.batch_size,
-            concatenate=True,
-            shuffle_examples=False
-        )
-        self.testloaders = teststream.get_dataloader(
-            self.tokenizer, 
-            batch_size=config.test_batch_size,
-            concatenate=False,
-            shuffle_examples=False
-        )
-        self.dataloader_keys = get_dataloader_keys(self.dataloader, self.config.model.base_model)
-        self.testloaders_keys = [get_dataloader_keys(dl, self.config.model.base_model) for dl in self.testloaders]
-        log.info(f"Loaded Data Stream")
-
-    def load_model(self): 
-        config = self.config.model
-        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        base_model = AutoModel.from_pretrained(config.base_model)
-        self.model = MbPA(base_model, device)
-        log.info(f"Loaded {config.base_model} on {device}")
-        self.opt = AdamW(
-            self.model.parameters(), 
-            weight_decay=config.wt_decay,
-            lr=config.lr
-        )
+class MbPAReplayTrainer(Trainer):
 
     def run(self):
-        # making sure memory is not empty
-        self.model.add(next(iter(self.dataloader)), self.dataloader_keys[0], probability=1.0)
+        self.dataloader_keys = get_dataloader_keys(self.dataloader, self.config.model.base_model)
+        self.testloaders_keys = [get_dataloader_keys(dl, self.config.model.base_model) for dl in self.testloaders]
+        self.memory = MbpaMemory(next(iter(self.dataloader)), self.dataloader_keys[0])
         self.model.train()
         self.model.zero_grad()
         batch_size = self.config.data.batch_size
@@ -92,9 +38,6 @@ class MbPAReplayTrainer():
             log.info(f"Testing done in {time.perf_counter()-start:.04f} secs")
             wandb.log(losses, step=examples_seen)
             wandb.log(accuracies, step=examples_seen)
-            index.append(examples_seen)
-            head_weights.append(self.model.head.weight.detach().cpu().numpy())
-            head_biases.append(self.model.head.bias.detach().cpu().numpy())
             log.info(
                 f"Test Accuracies at {examples_seen}:"\
                 f"{json.dumps(accuracies, indent=4)}"
@@ -109,9 +52,9 @@ class MbPAReplayTrainer():
             self.opt.step()
             wandb.log({"train/loss": loss.item()}, step=examples_seen)
             wandb.log({"train/accuracy": acc}, step=examples_seen)
-            model.add(batch, self.dataloader_keys[i], add_probability)
+            self.memory.add(batch, self.dataloader_keys[i], add_probability)
             if (i+1) % replay_interval == 0:
-                for batch in model.sample(num_replay_batches, batch_size):
+                for batch in self.memory.sample(num_replay_batches, batch_size):
                     loss, acc = self.model.step(batch)
                     loss.backward()
                     self.opt.step()
@@ -133,7 +76,7 @@ class MbPAReplayTrainer():
         for name, dl, keys in zip(self.dataset_names, self.testloaders, self.testloaders_keys):
             losses, accuracies = [], [] 
             for idx, batch in enumerate(dl):
-                neighbour_batches = model.get_neighbours(batch, keys[idx])
+                neighbour_batches = self.memory.get_neighbours(batch, keys[idx])
                 input_ids, attention_masks, token_type_ids, labels = batch["input_ids"], batch["attention_mask"], batch["token_type_ids"], batch["label"]
                 for i in range(self.config.data.batch_size):
                     unit_batch = {
@@ -154,9 +97,9 @@ class MbPAReplayTrainer():
         return testset_losses, testset_accuracies
     
 def local_adaptation(batch, neighbour_batch, model_path, config):
-    base_model = AutoModel.from_pretrained(config.model.base_model)
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    temp_model = MbPA(base_model, device)
+    base_model = AutoModel.from_pretrained(config.model.base_model)
+    temp_model = LifelongLearner(base_model, device)
     temp_model.load(model_path)
     with torch.no_grad():
         orig_params = torch.cat([torch.reshape(param, [-1]) for param in temp_model.parameters()], axis=0).to("cpu")
