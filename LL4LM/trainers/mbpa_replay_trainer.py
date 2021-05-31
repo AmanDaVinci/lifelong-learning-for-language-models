@@ -129,7 +129,6 @@ class MbPAReplayTrainer():
         del(self.opt)
         gc.collect()
         torch.cuda.empty_cache()
-        self.model.eval()
         testset_losses, testset_accuracies  = {}, {}
         for name, dl, keys in zip(self.dataset_names, self.testloaders, self.testloaders_keys):
             losses, accuracies = [], [] 
