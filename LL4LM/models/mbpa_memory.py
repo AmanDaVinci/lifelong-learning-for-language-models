@@ -17,6 +17,7 @@ class MbpaMemory():
                     batch["attention_mask"][idx],
                     batch["token_type_ids"][idx],
                     batch["label"][idx],
+                )
 
     def make_batches(self, input_ids, attention_mask, token_type_ids, labels, batch_size):
         batches = []
