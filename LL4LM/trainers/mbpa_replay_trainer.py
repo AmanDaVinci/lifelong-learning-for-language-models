@@ -60,8 +60,8 @@ class MbPAReplayTrainer():
             concatenate=False,
             shuffle_examples=False
         )
-        self.dataloader_keys = get_dataloader_keys(self.dataloader, self.config.base_model)
-        self.testloaders_keys = [get_dataloader_keys(dl, self.config.base_model) for dl in self.testloaders]
+        self.dataloader_keys = get_dataloader_keys(self.dataloader, self.config.model.base_model)
+        self.testloaders_keys = [get_dataloader_keys(dl, self.config.model.base_model) for dl in self.testloaders]
         log.info(f"Loaded Data Stream")
 
     def load_model(self): 
