@@ -54,9 +54,12 @@ class MbpaMemory():
         bs = len(batch["label"])
         for key in batch_keys:
             similarity_scores = np.dot(all_keys, key.T)
-            neighbour_keys = all_keys[
-                np.argpartition(similarity_scores, -bs)[-bs:]
-            ]
+            if len(all_keys) > bs:
+                neighbour_keys = all_keys[
+                    np.argpartition(similarity_scores, -bs)[-bs:]
+                ]
+            else:
+                neighbour_keys = all_keys
             n_input_ids, n_attention_mask, n_token_type_ids, n_labels = [], [], [], []
             for nkey in neighbour_keys:
                 nkey =  nkey.tobytes()
