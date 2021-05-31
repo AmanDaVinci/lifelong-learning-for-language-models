@@ -9,6 +9,7 @@ from copy import deepcopy
 from torch.optim import SGD
 
 from LL4LM.models.mbpa import MbPA
+from LL4LM.datastreams import DataStream
 from transformers import AdamW, AutoTokenizer, AutoModel
 
 import wandb
