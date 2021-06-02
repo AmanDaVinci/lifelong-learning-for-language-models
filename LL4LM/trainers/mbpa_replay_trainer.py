@@ -32,6 +32,7 @@ class MbPAReplayTrainer(LifelongTrainer):
         replay_interval = self.config.trainer.replay_interval
         num_replay_batches = self.config.trainer.num_replay_batches
         add_probability = self.config.trainer.replay_add_probability
+        examples_seen = 0
         def _test_log():
             start = time.perf_counter()
             losses, accuracies = self.test()
@@ -43,7 +44,6 @@ class MbPAReplayTrainer(LifelongTrainer):
                 f"{json.dumps(accuracies, indent=4)}"
             )
         _test_log()
-        examples_seen = 0
         for i, batch in enumerate(self.dataloader):
             examples_seen += batch_size
             self.model.zero_grad()
