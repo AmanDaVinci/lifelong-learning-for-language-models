@@ -35,6 +35,7 @@ class LifelongTrainer(Trainer):
         examples = datastream.sample_examples(config.n_samples_each_dataset)
         wandb.log({"Sampled_Examples": wandb.Table(dataframe=examples)}, step=0)
         wandb.log({"Data_Stream": wandb.Table(dataframe=datastream.summary())}, step=0)
+        wandb.log({"Test Stream": wandb.Table(dataframe=teststream.summary())}, step=0)
         self.tokenizer = AutoTokenizer.from_pretrained(self.config.model.base_model)
         self.dataloader = datastream.get_dataloader(
             self.tokenizer, 
@@ -66,15 +67,17 @@ class LifelongTrainer(Trainer):
         examples_seen = 0
         grads, nonzero_indices = None, None
         index, head_weights, head_biases = [], [], []
+        all_logits = []
         def _test_log():
             start = time.perf_counter()
-            losses, accuracies = self.test()
+            losses, accuracies, logits = self.test()
             log.info(f"Testing done in {time.perf_counter()-start:.04f} secs")
             wandb.log(losses, step=examples_seen)
             wandb.log(accuracies, step=examples_seen)
             index.append(examples_seen)
             head_weights.append(self.model.head.weight.detach().cpu().numpy())
             head_biases.append(self.model.head.bias.detach().cpu().numpy())
+            all_logits.append(logits)
             log.info(
                 f"Test Accuracies at {examples_seen}:"\
                 f"{json.dumps(accuracies, indent=4)}"
@@ -110,18 +113,21 @@ class LifelongTrainer(Trainer):
         np.save(self.output_dir/"head_weights.npy", np.concatenate(head_weights))
         np.save(self.output_dir/"head_biases.npy", np.concatenate(head_biases))
         np.save(self.output_dir/"index.npy", np.array(index))
+        np.save(self.output_dir/"logits.npy", np.stack(all_logits))
 
     def test(self):
         self.model.eval()
-        testset_losses, testset_accuracies  = {}, {}
+        testset_losses, testset_accuracies, test_logits  = {}, {}, []
         for name, testloader in zip(self.dataset_names, self.testloaders):
-            losses, accuracies = [], [] 
+            losses, accuracies, logits = [], [], [] 
             for batch in testloader:
                 with torch.no_grad():
-                    loss, acc = self.model.step(batch)
+                    loss, acc, logit = self.model.step_logits(batch)
                 losses.append(loss.item())
                 accuracies.append(acc)
+                logits.append(logit)
             testset_losses[f"test/{name}/loss"] = np.mean(losses)
             testset_accuracies[f"test/{name}/accuracy"] = np.mean(accuracies)
+            test_logits.append(logits)
         self.model.train()
-        return testset_losses, testset_accuracies
+        return testset_losses, testset_accuracies, np.concatenate(test_logits)

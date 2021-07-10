@@ -38,6 +38,21 @@ class LifelongLearner(nn.Module):
         accuracy = accuracy_score(labels, predictions)
         return loss, accuracy
 
+    # TODO: merge functionality with step function
+    def step_logits(self, batch):
+        batch = {k: v.to(self.device) for k, v in batch.items()}
+        labels = batch.pop("label")
+        outputs = self.forward(**batch)
+        # logits = torch.squeeze(outputs['logits'])
+        # loss = self.loss_fn(logits.float(), labels.float())
+        logits = outputs['logits']
+        loss = self.loss_fn(logits.float(), labels.unsqueeze(1).float())
+        labels = labels.detach().cpu().numpy()
+        logits = logits.detach().cpu().numpy()
+        predictions = logits >= 0.0 # probability above 0.5
+        accuracy = accuracy_score(labels, predictions)
+        return loss, accuracy, logits
+
     def save(self, path):
         torch.save(self.state_dict(), path)
 
