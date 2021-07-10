@@ -128,6 +128,7 @@ class LifelongTrainer(Trainer):
                 logits.append(logit)
             testset_losses[f"test/{name}/loss"] = np.mean(losses)
             testset_accuracies[f"test/{name}/accuracy"] = np.mean(accuracies)
+            logits = np.concatenate(logits)
             test_logits.append(logits)
         self.model.train()
         return testset_losses, testset_accuracies, np.concatenate(test_logits)
