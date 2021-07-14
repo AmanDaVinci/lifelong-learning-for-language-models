@@ -35,6 +35,7 @@ class LifelongTrainer(Trainer):
         examples = datastream.sample_examples(config.n_samples_each_dataset)
         wandb.log({"Sampled_Examples": wandb.Table(dataframe=examples)}, step=0)
         wandb.log({"Data_Stream": wandb.Table(dataframe=datastream.summary())}, step=0)
+        wandb.log({"Test_Stream": wandb.Table(dataframe=teststream.summary())}, step=0)
         self.tokenizer = AutoTokenizer.from_pretrained(self.config.model.base_model)
         self.dataloader = datastream.get_dataloader(
             self.tokenizer, 
