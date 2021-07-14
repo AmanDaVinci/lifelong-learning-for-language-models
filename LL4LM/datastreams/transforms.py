@@ -226,13 +226,13 @@ def few_rel(batch: dict) -> dict:
         context = " ".join(row[0])
         relation = row[1][0]
         head, tail = row[2]["text"], row[3]["text"]
-        true_statement = " - ".join([head, relation, tail]) 
+        true_statement = " ".join([head, relation, tail]) 
         contexts.append(context)
         statements.append(true_statement)
         labels.append(1)
         remaining_relations = [rel for rel in relations if rel!=relation]
         for false_relation in random.sample(remaining_relations, k=num_false_statements):
-            false_statement = " - ".join([head, false_relation, tail]) 
+            false_statement = " ".join([head, false_relation, tail]) 
             contexts.append(context)
             statements.append(false_statement)
             labels.append(0)
@@ -279,7 +279,7 @@ def udpos(batch: dict) -> dict:
     num_false_statements = 3
     corruption_probability = 0.5
     pos_list = ['NOUN', 'PUNCT', 'ADP', 'NUM', 'SYM', 'SCONJ', 'ADJ', 'PART', 'DET', 'CCONJ', 'PROPN', 'PRON', 'X', '_', 'ADV', 'INTJ', 'VERB', 'AUX']
-    task_descriptors = ["Part of speech tags: ", "POS tags: "]
+    task_descriptors = ["Part of speech tags ", "POS tags "]
     contexts, statements, labels = [], [], []
     for tokens, tags in zip(batch["tokens"], batch["upos"]):
         context = " ".join(tokens)
@@ -400,11 +400,11 @@ def dbpedia(batch: dict) -> dict:
 
 def yelp_review_full(batch: dict) -> dict:
     label2string = {
-        0:'negative',
-        1:'negative', 
+        0:'bad',
+        1:'bad', 
         2:'neutral',
-        3:'positive',
-        4:'positive',
+        3:'good',
+        4:'good',
     }
     contexts, statements, labels = [], [], []
     for row in zip(batch["text"], batch["label"]):
