@@ -413,7 +413,7 @@ def yelp_review_full(batch: dict) -> dict:
     label2string = {
         0:('negative','bad'),
         1:('negative','bad'),
-        2:('neutral'),
+        2:('neutral', 'average'),
         3:('positive','good'),
         4:('positive','good'),
     }
