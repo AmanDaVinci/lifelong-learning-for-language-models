@@ -429,7 +429,7 @@ def yelp_review_full(batch: dict) -> dict:
         statements.append(statement)
         labels.append(1)
         for other_label_int, other_label_strs in label2string.items():
-            if other_label_str != label_str:
+            if other_label_int != label_int:
                 contexts.append(text)
                 other_label_str = random.choice(other_label_strs)
                 statement = random.choice([
